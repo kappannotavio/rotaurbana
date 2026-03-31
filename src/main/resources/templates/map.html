@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+
+    <title>Mapa com Ônibus</title>
+
+    <style>
+
+        body{
+            margin:0;
+            font-family: Arial, Helvetica, sans-serif;
+            background:#f4f4f4;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+        }
+
+        h1{
+            margin-top:30px;
+        }
+
+        h2{
+            font-weight:normal;
+            color:#555;
+        }
+
+        #mapid{
+            margin-top:20px;
+            height:400px;
+            width:80%;
+            max-width:900px;
+            border-radius:12px;
+            box-shadow:0 10px 25px rgba(0,0,0,0.2);
+        }
+
+    </style>
+</head>
+
+<body>
+
+<h1>Sua localização</h1>
+<h2>Carregando...</h2>
+
+<div id="mapid"></div>
+
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="mapScript.js"></script>
+
+</body>
+</html>
