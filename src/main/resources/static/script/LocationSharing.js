@@ -5,7 +5,7 @@ if ("geolocation" in navigator) {
 
     navigator.geolocation.watchPosition(success, error, {
         enableHighAccuracy: true,
-        timeout: 5000,
+        timeout: 1000,
         maximumAge: 0
     });
 
@@ -22,7 +22,7 @@ function success(pos) {
     const now = Date.now();
 
     // controla intervalo de envio
-    if (now - lastSend < 3000) return;
+    if (now - lastSend < 1000) return;
 
     lastSend = now;
 
