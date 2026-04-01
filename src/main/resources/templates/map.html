@@ -9,7 +9,6 @@
     <title>Mapa com Ônibus</title>
 
     <style>
-
         body{
             margin:0;
             font-family: Arial, Helvetica, sans-serif;
@@ -36,19 +35,24 @@
             border-radius:12px;
             box-shadow:0 10px 25px rgba(0,0,0,0.2);
         }
-
     </style>
 </head>
 
 <body>
 
 <h1>Sua localização</h1>
-<h2>Carregando...</h2>
+<h2 id="coords">Carregando...</h2>
 
 <div id="mapid"></div>
 
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-<script src="mapScript.js"></script>
+
+<script src="script/Config.js"></script>
+<script src="script/MapBuilding.js"></script>
+
+<script>
+    startLocationTracking(updateMap);
+</script>
 
 </body>
 </html>
