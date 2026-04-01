@@ -11,4 +11,9 @@ public class MapController {
         return "map";
     }
 
+    @GetMapping("/sendLocation")
+    public String sendLocation(){
+        return "LocationSharing";
+    }
+
 }
