@@ -2,27 +2,24 @@ package io.github.uri.rotaurbana.dto;
 
 public class LocationDTO {
 
-    private double lat;
-    private double lon;
-
-
-    //methods
+    private double latitude;
+    private double longitude;
 
 
     //getters and setters
-    public double getLat() {
-        return lat;
+    public double getLatitude() {
+        return latitude;
     }
 
-    public void setLat(double lat) {
-        this.lat = lat;
+    public void setLat(double latitude) {
+        this.latitude = latitude;
     }
 
-    public double getLon() {
-        return lon;
+    public double getLongitude() {
+        return longitude;
     }
 
-    public void setLon(double lon) {
-        this.lon = lon;
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
     }
 }
