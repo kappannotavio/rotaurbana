@@ -1,4 +1,4 @@
-package io.github.uri.rotaurbana.dto;
+package io.github.uri.rotaurbana.model.dto;
 
 public class LocationDTO {
 
