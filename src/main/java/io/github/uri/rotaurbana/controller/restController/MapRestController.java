@@ -1,6 +1,6 @@
 package io.github.uri.rotaurbana.controller.restController;
 
-import io.github.uri.rotaurbana.model.dto.LocationDTO;
+import io.github.uri.rotaurbana.dto.request.LocationDTO;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
