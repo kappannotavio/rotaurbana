@@ -19,6 +19,13 @@ target/
 *.iml
 *.ipr
 
+# Configurações sensíveis
+src/main/resources/application.yml
+src/main/resources/application-*.yml
+
+# Permite o exemplo
+!src/main/resources/application-example.yml
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/

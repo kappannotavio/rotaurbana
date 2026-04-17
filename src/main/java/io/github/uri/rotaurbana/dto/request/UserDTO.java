@@ -1,8 +1,8 @@
-package io.github.uri.rotaurbana.model.dto;
+package io.github.uri.rotaurbana.dto.request;
 
 import io.github.uri.rotaurbana.enums.Role;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 public class UserDTO {
 
@@ -11,16 +11,16 @@ public class UserDTO {
     private String adress;
     private String city;
     private Role role;
-    private String login;
+    private String email;
     private String password;
-    private Date birthday;
+    private LocalDate birthday;
 
-    public UserDTO(String fullName, String adress, String city, Role role, String login, String password, Date birthday) {
+    public UserDTO(String fullName, String adress, String city, Role role, String email, String password, LocalDate birthday) {
         this.fullName = fullName;
         this.adress = adress;
         this.city = city;
         this.role = role;
-        this.login = login;
+        this.email = email;
         this.password = password;
         this.birthday = birthday;
     }
