@@ -1,4 +1,4 @@
-package io.github.uri.rotaurbana.model.dto;
+package io.github.uri.rotaurbana.dto.request;
 
 import java.sql.Time;
 
