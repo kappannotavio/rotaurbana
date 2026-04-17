@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: rotaurbana
+  datasource:
+    url: jdbc:mysql://localhost:3306/rotaurbana?useSSL=false&serverTimezone=UTC
+    username: SEU_USER
+    password: SUA_SENHA
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+api:
+  security:
+    token:
+      secret: "SUA SECRET"
