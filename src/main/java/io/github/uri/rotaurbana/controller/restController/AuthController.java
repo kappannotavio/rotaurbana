@@ -1,8 +1,8 @@
 package io.github.uri.rotaurbana.controller.restController;
 
-import io.github.uri.rotaurbana.dto.request.RegisterDTO;
-import io.github.uri.rotaurbana.dto.response.AuthDTO;
-import io.github.uri.rotaurbana.dto.response.LoginDTO;
+import io.github.uri.rotaurbana.dto.request.RegisterRequestDTO;
+import io.github.uri.rotaurbana.dto.response.AuthResponseDTO;
+import io.github.uri.rotaurbana.dto.response.LoginResponseDTO;
 import io.github.uri.rotaurbana.service.LoginService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,17 +20,17 @@ public class AuthController {
     LoginService loginService;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginDTO> login(@RequestBody @Valid AuthDTO authDTO) {
+    public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid AuthResponseDTO authResponseDTO) {
 
-        var token = loginService.login(authDTO);
+        var token = loginService.login(authResponseDTO);
 
-        return ResponseEntity.ok(new LoginDTO(token));
+        return ResponseEntity.ok(new LoginResponseDTO(token));
     }
 
     @PostMapping("/register")
-    public ResponseEntity register(@RequestBody @Valid RegisterDTO registerDTO) {
+    public ResponseEntity register(@RequestBody @Valid RegisterRequestDTO registerRequestDTO) {
 
-        boolean success = loginService.register(registerDTO);
+        boolean success = loginService.register(registerRequestDTO);
 
         if(!success) {
             return ResponseEntity.badRequest().build();

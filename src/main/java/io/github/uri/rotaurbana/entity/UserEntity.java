@@ -4,14 +4,13 @@ import io.github.uri.rotaurbana.enums.Role;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.jspecify.annotations.Nullable;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import org.springframework.security.core.GrantedAuthority;
+
 import java.time.LocalDate;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 @Getter
@@ -35,31 +34,58 @@ public class UserEntity implements UserDetails {
     private String email;
     private String password;
     private LocalDate birthDate;
+    private String userImageUrl;
 
     //Construtor
-
-    public UserEntity(String fullName, String adress, String city, String email, String password, LocalDate birthDate) {
+    public UserEntity(String fullName, String adress, String city, String email, String password, LocalDate birthDate, String userImageUrl) {
         this.fullName = fullName;
         this.adress = adress;
         this.city = city;
         this.email = email;
         this.password = password;
         this.birthDate = birthDate;
+        this.userImageUrl = (userImageUrl == null || userImageUrl.isBlank()) ? "padrao" : userImageUrl; //NAO ESQUECE DE MUDAR O DEFAULT
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if(this.role == Role.ADMIN) return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_USER"));
-        else return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        if (this.role == Role.ADMIN) {
+            return List.of(
+                    new SimpleGrantedAuthority("ROLE_ADMIN"),
+                    new SimpleGrantedAuthority("ROLE_USER")
+            );
+        } else {
+            return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        }
     }
 
     @Override
-    public @Nullable String getPassword() {
+    public String getPassword() {
         return password;
     }
 
     @Override
     public String getUsername() {
         return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 }
