@@ -17,7 +17,24 @@ public class BusEntity {
     private String sign;
     private double mileage;
 
+    private String busImageUrl;
+
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "fkIdDriver")
     private DriverEntity driver;
+
+
+    //Constructors
+    public BusEntity(DriverEntity driver, String busImageUrl, double mileage, String sign, String color, String model, String brand) {
+        this.driver = driver;
+        this.busImageUrl = busImageUrl;
+        this.mileage = mileage;
+        this.sign = sign;
+        this.color = color;
+        this.model = model;
+        this.brand = brand;
+    }
+
+    public BusEntity() {}
+
 }
