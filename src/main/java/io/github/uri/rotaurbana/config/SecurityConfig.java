@@ -30,7 +30,8 @@ public class SecurityConfig {
                         //Endpoint de perms
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/users/test").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/user/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/map/**").authenticated()
                         .requestMatchers("/h2-console/**").permitAll()
                         .anyRequest().authenticated()
                 )
