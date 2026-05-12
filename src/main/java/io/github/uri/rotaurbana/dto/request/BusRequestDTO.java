@@ -5,8 +5,8 @@ public record BusRequestDTO(
         String model,
         String color,
         String sign,
-       double mileage,
-        Long fkIdDriver,
-        String busImageUrl
+        double mileage,
+        String busImageUrl,
+        Long driverId
 ) {
 }
