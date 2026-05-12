@@ -19,6 +19,8 @@ target/
 *.iml
 *.ipr
 
+src/main/resources/images/profiles/
+
 # Configurações sensíveis
 src/main/resources/application.yml
 src/main/resources/application-*.yml
