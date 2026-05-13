@@ -3,7 +3,11 @@ package io.github.uri.rotaurbana.service;
 import io.github.uri.rotaurbana.config.TokenService;
 import io.github.uri.rotaurbana.dto.request.RegisterRequestDTO;
 import io.github.uri.rotaurbana.dto.response.AuthResponseDTO;
+import io.github.uri.rotaurbana.dto.response.LoginResponseDTO;
+import io.github.uri.rotaurbana.entity.DriverEntity;
 import io.github.uri.rotaurbana.entity.UserEntity;
+import io.github.uri.rotaurbana.enums.Role;
+import io.github.uri.rotaurbana.repository.DriverRepository;
 import io.github.uri.rotaurbana.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -11,6 +15,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 
 @Service
 public class LoginService {
@@ -24,12 +29,30 @@ public class LoginService {
     @Autowired
     private UserRepository userRepository;
 
-    public String login(AuthResponseDTO authResponseDTO) {
+    @Autowired
+    private DriverRepository driverRepository;
+
+    public LoginResponseDTO login(AuthResponseDTO authResponseDTO) {
         var usernamePassword = new UsernamePasswordAuthenticationToken(authResponseDTO.email(), authResponseDTO.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
 
-        return tokenService.generateToken((UserEntity) auth.getPrincipal());
+        UserEntity user = (UserEntity) auth.getPrincipal();
+        String token = tokenService.generateToken(user);
 
+        Long driverId = null;
+        if (user.getRole() == Role.DRIVER) {
+            Optional<DriverEntity> driver = driverRepository.findByUser(user);
+            if (driver.isPresent()) {
+                driverId = driver.get().getIdDriver();
+            }
+        }
+
+        return new LoginResponseDTO(
+                token,
+                user.getId(),
+                driverId,
+                user.getRole().name()
+        );
     }
 
     public boolean register(RegisterRequestDTO registerRequestDTO) {

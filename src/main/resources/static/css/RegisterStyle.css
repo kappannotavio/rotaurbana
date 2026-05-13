@@ -1,0 +1,83 @@
+body {
+    background-color: #0E0E15;
+    color: white;
+    font-family: 'Barlow condensed', sans-serif;
+}
+
+
+/* Container principal da pagina de registro */
+
+.main-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 90vh;
+    gap: 20px;
+}
+
+
+/* Botao de voltar */
+
+.buttonBack {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: #FF5C1A;
+    background-color: transparent;
+}
+
+.buttonBack:hover {
+    color: black;
+    background-color: transparent;
+}
+
+
+
+/* Tudo o que ta dentro do form */
+
+form {
+    background-color: #1A1A24;
+    padding: 30px;
+    border-radius: 29px;
+    border-color: #26263A;
+    border-style: solid;
+    border-width: 1px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.form-control {
+    background-color: #0E0E15;
+    border: 1px solid #26263A;
+    color: rgb(255, 255, 255);
+    transition: all 0.2s ease;
+}
+
+.form-control:focus {
+    background-color: #0E0E15;
+    color: rgb(255, 255, 255);
+    border-color: #FF5C1A;
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+}
+
+
+/* Todos os label */
+
+label {
+    font-size: 0.9rem;
+    color: #b0b0c3;
+}
+
+
+/* Botao de criar conta */
+
+.custom-btn {
+    background-color: #FF5C1A;
+    border: none;
+    color: white;
+
+}
+.custom-btn:hover {
+    background-color: #ff842c;
+}

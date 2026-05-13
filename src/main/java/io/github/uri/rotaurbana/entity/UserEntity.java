@@ -1,5 +1,6 @@
 package io.github.uri.rotaurbana.entity;
 
+import io.github.uri.rotaurbana.enums.PaymentStatus;
 import io.github.uri.rotaurbana.enums.Role;
 
 import jakarta.persistence.*;
@@ -35,6 +36,9 @@ public class UserEntity implements UserDetails {
     private String password;
     private LocalDate birthDate;
     private String userImageUrl;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus paymentStatus = PaymentStatus.EM_DAY;
 
     //Construtor
     public UserEntity(String fullName, String adress, String city, String email, String password, LocalDate birthDate, String userImageUrl) {

@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+
 @Service
 public class UserService {
 
@@ -23,6 +25,35 @@ public class UserService {
 
         UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found!"));
+
+        return new UserResponseDTO(
+                user.getFullName(),
+                user.getAdress(),
+                user.getCity(),
+                user.getRole(),
+                user.getEmail(),
+                user.getBirthDate(),
+                user.getUserImageUrl()
+        );
+    }
+
+    public UserResponseDTO updateUser(Long id, String fullName, String adress, String city, LocalDate birthDate, String userImageUrl) {
+        UserEntity loggedUser = (UserEntity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (!loggedUser.getId().equals(id) && !loggedUser.getRole().name().equals("ADMIN")) {
+            throw new RuntimeException("Access denied!");
+        }
+
+        UserEntity user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found!"));
+
+        if (fullName != null) user.setFullName(fullName);
+        if (adress != null) user.setAdress(adress);
+        if (city != null) user.setCity(city);
+        if (birthDate != null) user.setBirthDate(birthDate);
+        if (userImageUrl != null) user.setUserImageUrl(userImageUrl);
+
+        userRepository.save(user);
 
         return new UserResponseDTO(
                 user.getFullName(),

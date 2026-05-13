@@ -2,7 +2,15 @@ package io.github.uri.rotaurbana.entity;
 
 import jakarta.persistence.*;
 import jakarta.persistence.GenerationType;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
+
+@Getter
+@Setter
 @Entity
 @Table(name = "bus")
 public class BusEntity {
@@ -19,9 +27,20 @@ public class BusEntity {
 
     private String busImageUrl;
 
+    @Column(unique = true, length = 6)
+    private String code;
+
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "fkIdDriver")
+    @JoinColumn(name = "fk_id_driver")
     private DriverEntity driver;
+
+    @ManyToMany
+    @JoinTable(
+        name = "bus_passengers",
+        joinColumns = @JoinColumn(name = "bus_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<UserEntity> passengers = new HashSet<>();
 
 
     //Constructors

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/RegisterStyle.css">
+
+    <title>Registro</title>
+</head>
+<body>
+
+<div class="buttonBack">
+    <a class="btn custom-btn" href="/auth/login">⬅</a>
+</div>
+
+<div class="main-container">
+    <div class="title">
+        <h2>Insira suas informações</h2>
+    </div>
+
+    <form id="registerForm">
+
+        <div class="mb-3">
+            <label for="fullName">Nome completo:</label>
+            <input class="form-control" type="text" id="fullName" name="fullName" required>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="adress">Endereço:</label>
+                <input class="form-control" type="text" id="adress" name="adress" placeholder="Rua Exemplo, 123" required>
+            </div>
+            <div class="col-md-6">
+                <label for="city">Cidade:</label>
+                <input class="form-control" type="text" id="city" name="city" placeholder="São Paulo" required>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="email">E-mail:</label>
+            <input class="form-control" type="email" id="email" name="email" placeholder="seuemail@email.com" required>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="password">Senha:</label>
+                <input class="form-control" type="password" id="password" name="password" required>
+            </div>
+            <div class="col-md-6">
+                <label for="confirmPassword">Confirmar senha:</label>
+                <input class="form-control" type="password" id="confirmPassword" name="confirmPassword" required>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="birthDate">Data de nascimento:</label>
+            <input class="form-control" type="date" id="birthDate" name="birthDate" required>
+        </div>
+
+        <div class="mb-3">
+            <label>Foto de perfil (opcional):</label>
+            <div style="display:flex; align-items:center; gap:15px; margin-top:8px;">
+                <img id="registerImagePreview" src="" alt="Preview"
+                     style="display:none; width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid #FF5C1A;">
+                <label class="custom-file-upload" style="cursor:pointer; background:#0E0E15; border:1px dashed #26263A; border-radius:12px; padding:15px 20px; text-align:center; flex:1; color:#b0b0c3; transition:all 0.2s;">
+                    <i class="bi bi-camera fs-4 d-block mb-1"></i>
+                    <span style="font-size:0.85rem;">Clique para escolher foto</span>
+                    <input type="file" id="registerImage" accept="image/*" style="display:none;">
+                </label>
+            </div>
+        </div>
+
+        <div id="errorMsg" class="text-danger mb-2" style="display:none;"></div>
+
+        <div class="createAccountButton">
+            <button type="submit" class="btn custom-btn w-100" id="btnRegister">
+                Criar conta
+            </button>
+        </div>
+
+    </form>
+</div>
+
+<script>
+document.getElementById("registerImage").addEventListener("change", function() {
+    const file = this.files[0];
+    if (!file) return;
+    const preview = document.getElementById("registerImagePreview");
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = "block";
+});
+
+document.getElementById("registerForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const password = document.getElementById("password").value;
+    const confirm = document.getElementById("confirmPassword").value;
+    const errorEl = document.getElementById("errorMsg");
+
+    if (password !== confirm) {
+        errorEl.textContent = "Senhas não conferem";
+        errorEl.style.display = "";
+        return;
+    }
+
+    errorEl.style.display = "none";
+
+    const btn = document.getElementById("btnRegister");
+    btn.disabled = true;
+    btn.textContent = "Cadastrando...";
+
+    try {
+        let userImageUrl = "padrao";
+        const fileInput = document.getElementById("registerImage");
+        if (fileInput.files.length > 0) {
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+            const uploadRes = await fetch("/api/upload/image", {
+                method: "POST",
+                body: formData
+            });
+            if (uploadRes.ok) {
+                const uploadData = await uploadRes.json();
+                userImageUrl = uploadData.imageUrl;
+            }
+        }
+
+        const res = await fetch("/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                fullName: document.getElementById("fullName").value,
+                adress: document.getElementById("adress").value,
+                city: document.getElementById("city").value,
+                email: document.getElementById("email").value,
+                password: password,
+                birthDate: document.getElementById("birthDate").value,
+                userImageUrl: userImageUrl
+            })
+        });
+
+        if (res.ok) {
+            window.location.href = "/auth/login";
+        } else {
+            errorEl.textContent = "E-mail já cadastrado";
+            errorEl.style.display = "";
+        }
+    } catch (err) {
+        errorEl.textContent = "Erro de conexão";
+        errorEl.style.display = "";
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "Criar conta";
+    }
+});
+</script>
+
+</body>
+</html>

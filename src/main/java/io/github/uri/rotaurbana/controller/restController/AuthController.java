@@ -22,9 +22,9 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid AuthResponseDTO authResponseDTO) {
 
-        var token = loginService.login(authResponseDTO);
+        LoginResponseDTO response = loginService.login(authResponseDTO);
 
-        return ResponseEntity.ok(new LoginResponseDTO(token));
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/register")
