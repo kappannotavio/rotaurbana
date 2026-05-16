@@ -14,42 +14,42 @@
 </head>
     <body>
 
-        <div class = "buttonBack">
+        <div class = "top-bar">
             <a class="btn back-btn" href="#" role="button">⬅</a>
         </div>
         
         <div class = "main-container">
             <form action = "accountRegister" method = "post">
 
-                <div class="usernameCamp my-1">
+                <div class="usernameCamp">
                     <label for="username">NOME COMPLETO</label>
                     <input class="form-control" type="text" id="username" name="username" required>
                 </div>
 
-                <div class = "row my-1">
-                    <div class="col-md-6 my-1 cpfCamp">
+                <div class = "row g-4">
+                    <div class="col-md-6 cpfCamp">
                         <label for="cpf">CPF</label>
                         <input class="form-control" type="text" id="cpf" name="cpf" placeholder="Ex: xxx.xxx.xxx-xx" required>
                     </div>
 
-                    <div class="col-md-6 my-1 phoneCamp">
+                    <div class="col-md-6 phoneCamp">
                         <label for="phone">TELEFONE</label>
                         <input class="form-control" type="tel" id="phone" name="phone" placeholder="Ex: (xx) xxxxx-xxxx" required>
                     </div>
                 </div>
 
-                <div class = "emailCamp my-1">
+                <div class = "emailCamp">
                     <label for="email">E-MAIL</label>
                     <input class="form-control" type="email" id="email" name="email" placeholder="seuemail@email.com" required>
                 </div>
 
-                <div class = "row mt-1 mb-4">
-                    <div class = "my-1 passwordCamp">
+                <div class = "passwordsGroup">
+                    <div class = "passwordCamp">
                         <label for="password">SENHA</label>
                         <input class="form-control" type="password" id="password" name="password" required>
                     </div>
 
-                    <div class = "my-3 confirmPasswordCamp">
+                    <div class = "confirmPasswordCamp">
                         <label for="confirmPassword">CONFIRMAR SENHA</label>
                         <input class="form-control" type="password" id="confirmPassword" name="confirmPassword" required>
                     </div>
