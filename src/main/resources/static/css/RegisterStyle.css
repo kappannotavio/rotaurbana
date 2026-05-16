@@ -1,0 +1,122 @@
+*{
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 2px;
+    font-weight: bold;
+    background-image: url("../static/imagens/backgroundregister.png");
+}
+
+
+body {
+    background-color: #0E0E15;
+    color: white;
+}
+
+
+/* Container principal da pagina de registro */
+
+.main-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+    padding-right: 50px;
+    padding-left: 50px;
+    min-height: 100vh;
+    gap: 20px;   
+    
+}
+
+
+/* Botao de voltar */
+
+.back-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 50px;
+    height: 50px;
+
+    color: rgba(255, 123, 0, 0.8);
+    background-color: transparent;
+    border: 2px solid #FF5C1A;
+    border-radius: 10px;
+
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    color: #000000;
+    background-color: #FF5C1A;
+}
+
+.back-btn:active {
+    transform: scale(0.90);
+    color: #FF5C1A !important;
+    background-color: transparent !important;
+}
+
+
+
+/* Tudo o que ta dentro do form */
+
+form {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    background-color: #1A1A24;
+    padding: 40px;
+    border-radius: 29px;
+    border: 1px solid #26263A;
+    width: 100%;
+    max-width: 500px;;
+    height: auto;
+    min-height: 80vh;    
+}
+
+.form-control {
+    font-size: 20px;
+    background-color: #0E0E15;
+    border: 1px solid #26263A;
+    color: rgb(255, 255, 255);
+    transition: all 0.2s ease;
+    padding: 10px;
+}
+
+.form-control:focus {
+    background-color: #0E0E15;
+    color: rgb(255, 255, 255);
+    border-color: #FF5C1A;
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+}
+
+
+/* Todos os label */
+
+label {
+    font-size: 20px;
+    color: #7878A0;
+}
+
+
+/* Botao de criar conta */
+
+.custom-btn {
+    background-color: #FF5C1A;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 30px;    
+    font-weight: bold;
+}
+.custom-btn:hover {
+    background-color: #ff842c;
+}
+
+.custom-btn:active {
+    transform: scale(0.99);
+    background-color: #FF5C1A !important;
+}
