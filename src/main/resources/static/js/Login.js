@@ -24,7 +24,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
         document.cookie = "role=" + result.role + "; path=/; expires=" + expires;
 
         if (result.role === "ADMIN") {
-            window.location.href = "/admin";
+            window.location.href = "/admin/routes";
         } else if (result.role === "DRIVER") {
             window.location.href = "/driver";
         } else {
