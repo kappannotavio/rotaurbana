@@ -45,6 +45,12 @@
             height: 40px;
             border-radius: 8px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #fff;
         }
 
         #miniMap {
@@ -300,9 +306,9 @@
         <div class="d-flex align-items-center gap-3">
             <span id="paymentBadge" class="payment-badge rounded-2 text-uppercase fw-bold" th:text="${paymentStatus}">Pagamento em dia</span>
             <div class="dropdown">
-                <div class="avatar-box" data-bs-toggle="dropdown" aria-expanded="false"
-                     th:style="'background: ' + (${userImageUrl != null && !#strings.isEmpty(userImageUrl) && userImageUrl != 'padrao'} ? 'url(' + ${userImageUrl} + ') center/cover no-repeat' : 'var(--primary-teal)') + ';'">
-                </div>
+                <div id="passengerAvatar" class="avatar-box" data-bs-toggle="dropdown" aria-expanded="false"
+                     th:style="'background: ' + (${userImageUrl != null && !#strings.isEmpty(userImageUrl) && userImageUrl != 'padrao'} ? 'url(' + ${userImageUrl} + ') center/cover no-repeat' : 'var(--primary-teal)') + ';'"
+                     th:data-name="${userName}">AD</div>
                 <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
                     <li><a class="dropdown-item" href="#" onclick="abrirModalAdicionarRota()"><i class="bi bi-plus-circle me-2"></i>Adicionar Rotas</a></li>
                     <li><a class="dropdown-item" href="#" onclick="abrirModalVisualizarRotas()"><i class="bi bi-map me-2"></i>Visualizar Rotas</a></li>
@@ -496,7 +502,31 @@
 
         await carregarRotas();
         setupEventos();
+        await atualizarAvatar();
     });
+
+    async function atualizarAvatar() {
+        try {
+            const res = await fetch('/user/' + userId, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            const avatar = document.getElementById('passengerAvatar');
+            if (data.userImageUrl && data.userImageUrl !== 'padrao') {
+                avatar.style.background = 'url(' + data.userImageUrl + ') center/cover no-repeat';
+                avatar.textContent = '';
+            } else {
+                avatar.style.background = 'var(--primary-teal)';
+                const name = data.fullName || 'Usuário';
+                const parts = name.trim().split(/\s+/);
+                const initials = parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : parts[0].substring(0, 2);
+                avatar.textContent = initials.toUpperCase();
+            }
+        } catch (e) {
+            console.error('Erro ao carregar avatar:', e);
+        }
+    }
 
     async function carregarRotas() {
         try {

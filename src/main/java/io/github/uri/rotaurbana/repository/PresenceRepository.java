@@ -7,11 +7,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface PresenceRepository extends JpaRepository<PresenceEntity, Long> {
 
     Optional<PresenceEntity> findByUserAndRouteAndDate(UserEntity user, RoutesEntity route, LocalDate date);
+
+    List<PresenceEntity> findByRouteAndDate(RoutesEntity route, LocalDate date);
 
 }

@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes da Rota - Rota Urbana</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        :root {
+            --bg-dark: #0f0f13;
+            --bg-card: #1c1c21;
+            --bg-card-light: #25252b;
+            --bg-input: #101014;
+            --border-color: #23232a;
+            --accent-orange: #ff5e00;
+            --accent-green: #00b37e;
+            --accent-green-bg: rgba(0, 179, 126, 0.1);
+            --accent-red: #f75a68;
+            --accent-red-bg: rgba(247, 90, 104, 0.1);
+            --accent-yellow: #e8b800;
+            --accent-yellow-bg: rgba(232, 184, 0, 0.1);
+            --text-main: #ffffff;
+            --text-muted: #8d8d99;
+            --text-inactive: #4d4d5a;
+            --purple-admin: #6f00ff;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+
+        .text-orange { color: var(--accent-orange) !important; }
+        .text-muted-custom { color: var(--text-muted) !important; font-size: 0.85rem; }
+        .text-xs { font-size: 0.75rem; }
+
+        /* Header */
+        .menu-btn {
+            background-color: var(--bg-card);
+            border: none;
+            color: var(--accent-orange);
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .badge-admin {
+            border: 1px solid var(--purple-admin);
+            color: var(--purple-admin);
+            background: transparent;
+            font-size: 0.7rem;
+            padding: 0.4em 0.8em;
+            border-radius: 6px;
+        }
+
+        .avatar-jg {
+            background-color: var(--purple-admin);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+
+        /* Cards */
+        .custom-card {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            border: none;
+        }
+
+        .info-card {
+            background-color: var(--bg-card-light);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+        }
+
+        .info-card:last-child { margin-bottom: 0; }
+
+        /* Mapa */
+        .map-container {
+            width: 100%;
+            height: 250px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        /* Stats */
+        .stat-box {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-box h6 {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .stat-box h3 { margin: 0; font-weight: 800; }
+
+        /* Badges de Pagamento */
+        .payment-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .payment-em-dia {
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+            background-color: var(--accent-green-bg);
+        }
+        .payment-pendente {
+            color: var(--accent-yellow);
+            border: 1px solid var(--accent-yellow);
+            background-color: var(--accent-yellow-bg);
+        }
+        .payment-atrasado {
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+            background-color: var(--accent-red-bg);
+        }
+
+        .onda-decorativa {
+            height: 2px;
+            width: 100px;
+            background: linear-gradient(90deg, var(--accent-orange) 0%, transparent 100%);
+            margin-left: 10px;
+            border-radius: 2px;
+        }
+
+        /* Scroll */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--bg-card-light); border-radius: 4px; }
+
+        .passenger-scroll {
+            max-height: 320px;
+            overflow-y: auto;
+        }
+        .passenger-scroll::-webkit-scrollbar { width: 4px; }
+        .passenger-scroll::-webkit-scrollbar-track { background: transparent; }
+        .passenger-scroll::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+
+        /* Loading */
+        .loading-overlay {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+        }
+        .spinner-custom {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--bg-card-light);
+            border-top-color: var(--accent-orange);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Botões */
+        .btn-custom-solid {
+            background-color: var(--accent-orange);
+            border: none;
+            color: white;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 12px;
+            transition: 0.2s;
+        }
+        .btn-custom-solid:hover {
+            background-color: #e65500;
+            color: white;
+        }
+
+        /* Modal com Blur */
+        .modal-blur .modal-backdrop {
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        .modal-blur .modal-content {
+            background-color: var(--bg-card);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-blur .modal-header {
+            border-bottom: 1px solid var(--border-color);
+            padding: 20px 24px;
+        }
+        .modal-blur .modal-body { padding: 24px; }
+        .modal-blur .modal-footer {
+            border-top: 1px solid var(--border-color);
+            padding: 16px 24px;
+        }
+        .modal-blur .btn-close { filter: invert(0.7); }
+
+        /* Formulários no Modal */
+        .modal-blur .form-label {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .modal-blur .form-control {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 0.9rem;
+        }
+        .modal-blur .form-control:focus {
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 0 0.2rem rgba(255, 94, 0, 0.25);
+        }
+        .modal-blur .form-control:disabled {
+            opacity: 0.5;
+        }
+
+        /* Cartão de Usuário no Modal */
+        .user-card {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .user-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        /* Toggle de Status */
+        .status-group {
+            display: flex;
+            gap: 6px;
+        }
+        .status-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-inactive);
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 5px 10px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .status-btn.active.em-dia {
+            color: var(--accent-green);
+            border-color: var(--accent-green);
+            background-color: var(--accent-green-bg);
+        }
+        .status-btn.active.pendente {
+            color: var(--accent-yellow);
+            border-color: var(--accent-yellow);
+            background-color: var(--accent-yellow-bg);
+        }
+
+        .btn-save-modal {
+            background-color: var(--accent-orange);
+            border: none;
+            color: white;
+            font-weight: 700;
+            border-radius: 8px;
+            padding: 12px 32px;
+            letter-spacing: 0.5px;
+        }
+        .btn-save-modal:hover { background-color: #e65500; color: white; }
+        .btn-save-modal:disabled { opacity: 0.6; }
+
+        .dropdown-menu-dark .dropdown-item {
+            color: #ccc;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            border-radius: 6px;
+        }
+        .dropdown-menu-dark .dropdown-item:hover {
+            background-color: var(--bg-card-light);
+            color: #fff;
+        }
+        .dropdown-menu-dark .dropdown-divider {
+            border-color: var(--border-color);
+        }
+
+        .offcanvas .btn-close { filter: invert(0.7); }
+        .offcanvas .form-control:focus {
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 0 0.2rem rgba(255, 94, 0, 0.25);
+        }
+        .upload-btn:hover {
+            border-color: var(--accent-orange) !important;
+            color: var(--accent-orange) !important;
+        }
+    </style>
+</head>
+<body>
+
+<div id="loadingView" class="loading-overlay">
+    <div class="text-center">
+        <div class="spinner-custom mx-auto mb-3"></div>
+        <p class="text-muted-custom">Carregando detalhes da rota...</p>
+    </div>
+</div>
+
+<div id="mainContent" style="display:none;">
+    <header class="container-fluid py-3 px-4 d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-3">
+            <button class="menu-btn shadow-sm" onclick="window.history.back()">
+                <i class="bi bi-arrow-left fs-4"></i>
+            </button>
+            <div>
+                <h5 class="mb-0 fw-bold" id="routeTitle">Carregando...</h5>
+                <span class="text-muted-custom">Detalhes da rota</span>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge badge-admin">ADMIN</span>
+            <div class="dropdown">
+                <div class="avatar-jg shadow-sm" id="adminAvatar" data-bs-toggle="dropdown" aria-expanded="false" style="cursor:pointer;">AD</div>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-lg" style="background-color:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;min-width:200px;">
+                    <li><a class="dropdown-item" href="/admin/routes"><i class="bi bi-map me-2"></i>Gerência de Rotas</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="abrirModalEditar()"><i class="bi bi-pencil me-2"></i>Editar Rota</a></li>
+                    <li><a class="dropdown-item" href="/admin/drivers"><i class="bi bi-person-badge me-2"></i>Motorista</a></li>
+                    <li><a class="dropdown-item" href="/admin/vehicles"><i class="bi bi-truck me-2"></i>Veículo</a></li>
+                    <li><hr class="dropdown-divider" style="border-color:var(--border-color);"></li>
+                    <li><a class="dropdown-item" href="#" onclick="editarPerfil()"><i class="bi bi-person-gear me-2"></i>Editar Perfil</a></li>
+                    <li><a class="dropdown-item text-danger" href="#" onclick="sair()"><i class="bi bi-box-arrow-right me-2"></i>Sair</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <main class="container-fluid px-4 py-2">
+        <div class="row g-4">
+
+            <div class="col-lg-7">
+                <h6 class="text-orange fw-bold text-uppercase mb-3">Detalhes da Rota</h6>
+
+                <div class="map-container mb-3 shadow-sm" id="routeMap"></div>
+
+                <div class="d-flex gap-2 mb-3">
+                    <div class="stat-box shadow-sm">
+                        <h6>Passageiros</h6>
+                        <h3 id="statTotal">0</h3>
+                    </div>
+                    <div class="stat-box shadow-sm">
+                        <h6>Em Dia</h6>
+                        <h3 style="color: var(--accent-green);" id="statEmDay">0</h3>
+                    </div>
+                    <div class="stat-box shadow-sm">
+                        <h6>Atrasados</h6>
+                        <h3 style="color: var(--accent-red);" id="statLate">0</h3>
+                    </div>
+                </div>
+
+                <div class="custom-card p-3 shadow-sm">
+                    <h6 class="text-muted-custom text-uppercase mb-3 fw-bold">Passageiros</h6>
+                    <div id="passengerList" class="passenger-scroll d-flex flex-column gap-2">
+                        <div class="text-muted-custom text-center py-3">Nenhum passageiro inscrito</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="custom-card p-4 shadow-sm mb-3">
+                    <div class="d-flex align-items-center mb-4">
+                        <h6 class="text-muted-custom text-uppercase mb-0 fw-bold">Informações da Rota</h6>
+                        <div class="onda-decorativa"></div>
+                    </div>
+
+                    <div class="info-card">
+                        <div class="text-muted-custom text-xs text-uppercase mb-1">Motorista</div>
+                        <div class="fw-bold" style="font-size: 0.95rem;" id="driverName">--</div>
+                        <div class="text-muted-custom text-xs mt-1" id="driverLicence">--</div>
+                    </div>
+
+                    <div class="info-card">
+                        <div class="text-muted-custom text-xs text-uppercase mb-1">Origem</div>
+                        <div class="fw-bold" style="font-size: 0.95rem;" id="originName">--</div>
+                        <div class="text-muted-custom text-xs mt-1" id="originTime">--</div>
+                    </div>
+
+                    <div class="info-card">
+                        <div class="text-muted-custom text-xs text-uppercase mb-1">Paradas</div>
+                        <div class="fw-bold" style="font-size: 0.95rem;" id="stopsCount">--</div>
+                        <div class="text-muted-custom text-xs mt-1" id="stopsDetail">--</div>
+                    </div>
+
+                    <div class="info-card m-0">
+                        <div class="text-muted-custom text-xs text-uppercase mb-1">Destino</div>
+                        <div class="fw-bold text-orange" style="font-size: 0.95rem;" id="destinyName">--</div>
+                        <div class="text-muted-custom text-xs mt-1" id="destinyTime">--</div>
+                    </div>
+                </div>
+
+                <div class="d-grid">
+                    <button class="btn btn-custom-solid shadow-sm" onclick="abrirModalEditar()">EDITAR ROTA</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<!-- Modal Editar Rota -->
+<div class="modal fade modal-blur" id="modalEditarRota" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Editar Rota</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+
+                <h6 class="text-muted-custom text-uppercase mb-3 fw-bold" style="font-size: 0.75rem;">Informações da Rota</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Origem</label>
+                        <input type="text" class="form-control" id="editDeparturePoint">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Destino</label>
+                        <input type="text" class="form-control" id="editDestiny">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Saída</label>
+                        <input type="time" class="form-control" id="editDepartureTime">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Chegada</label>
+                        <input type="time" class="form-control" id="editDestinationTime">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Duração</label>
+                        <input type="text" class="form-control" id="editEstimatedDuration">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Código</label>
+                        <input type="text" class="form-control" id="editRouteCode" disabled>
+                    </div>
+                </div>
+
+                <h6 class="text-muted-custom text-uppercase mb-3 fw-bold" style="font-size: 0.75rem;">Status de Pagamento</h6>
+                <div id="editPassengerList" class="d-flex flex-column gap-2">
+                    <div class="text-muted-custom text-center py-3">Nenhum passageiro</div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" style="background:#222;border:none;border-radius:8px;padding:12px 24px;" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-save-modal" id="btnSalvarPagamentos">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasEditarPerfil" style="background-color:var(--bg-card);color:var(--text-main);">
+    <div class="offcanvas-header border-bottom" style="border-color:var(--border-color)!important;">
+        <h5 class="offcanvas-title fw-bold">Editar Perfil</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div class="image-upload-wrapper mb-4" style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <img id="editImagePreview" src="" alt="Preview"
+                 style="display:none; width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid var(--accent-orange);">
+            <label class="upload-btn" id="editUploadLabel" style="background-color:var(--bg-input);border:1px dashed var(--border-color);border-radius:12px;padding:20px;cursor:pointer;text-align:center;width:100%;color:var(--text-muted);transition:all 0.2s;">
+                <i class="bi bi-camera fs-2 d-block mb-1"></i>
+                <span>Clique para escolher foto</span>
+                <input type="file" id="editImageInput" accept="image/*" style="display:none;">
+            </label>
+            <input type="hidden" id="editUserImageUrl">
+        </div>
+
+        <div class="mb-3">
+            <label style="font-size:0.75rem;letter-spacing:1px;color:var(--text-muted);margin-bottom:4px;">NOME COMPLETO</label>
+            <input type="text" class="form-control" id="editFullName" style="background-color:var(--bg-input);border:1px solid var(--border-color);color:var(--text-main);border-radius:8px;padding:12px;">
+        </div>
+        <div class="mb-3">
+            <label style="font-size:0.75rem;letter-spacing:1px;color:var(--text-muted);margin-bottom:4px;">ENDEREÇO</label>
+            <input type="text" class="form-control" id="editAdress" style="background-color:var(--bg-input);border:1px solid var(--border-color);color:var(--text-main);border-radius:8px;padding:12px;">
+        </div>
+        <div class="mb-3">
+            <label style="font-size:0.75rem;letter-spacing:1px;color:var(--text-muted);margin-bottom:4px;">CIDADE</label>
+            <input type="text" class="form-control" id="editCity" style="background-color:var(--bg-input);border:1px solid var(--border-color);color:var(--text-main);border-radius:8px;padding:12px;">
+        </div>
+        <div class="mb-3">
+            <label style="font-size:0.75rem;letter-spacing:1px;color:var(--text-muted);margin-bottom:4px;">DATA DE NASCIMENTO</label>
+            <input type="date" class="form-control" id="editBirthDate" style="background-color:var(--bg-input);border:1px solid var(--border-color);color:var(--text-main);border-radius:8px;padding:12px;">
+        </div>
+    </div>
+    <div class="offcanvas-footer border-top p-3" style="border-color:var(--border-color)!important;">
+        <button id="btnSalvarPerfil" class="btn w-100" style="background-color:var(--accent-orange);border:none;color:white;font-weight:700;border-radius:8px;padding:12px;">Salvar Alterações</button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    function getCookie(name) {
+        var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+        return match ? match[2] : null;
+    }
+
+    var token = getCookie("token");
+    var userId = getCookie("userId");
+    var role = getCookie("role");
+
+    if (!token || role !== "ADMIN") {
+        window.location.href = "/auth/login";
+    }
+
+    var routeId = window.location.pathname.split('/').pop();
+    var routeMap = null;
+    var depMarker = null;
+    var destMarker = null;
+    var routeLine = null;
+    var allPassengers = [];
+
+    function makeIcon(color) {
+        return L.divIcon({
+            html: '<div style="background:' + color + ';width:20px;height:20px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4);"></div>',
+            iconSize: [20, 20], iconAnchor: [10, 10], className: ''
+        });
+    }
+
+    function initMap(route) {
+        var depLat = Number(route.departureLatitude);
+        var depLng = Number(route.departureLongitude);
+        var destLat = Number(route.destinationLatitude);
+        var destLng = Number(route.destinationLongitude);
+
+        var hasDep = isFinite(depLat) && isFinite(depLng);
+        var hasDest = isFinite(destLat) && isFinite(destLng);
+
+        if (!hasDep && !hasDest) {
+            document.getElementById('routeMap').innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#1c1c21;color:#8d8d99;font-size:0.9rem;">Coordenadas da rota não disponíveis</div>';
+            return;
+        }
+
+        if (!routeMap) {
+            routeMap = L.map('routeMap', { zoomControl: true, attributionControl: false });
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(routeMap);
+        }
+
+        var bounds = [];
+
+        if (hasDep) {
+            if (depMarker) routeMap.removeLayer(depMarker);
+            depMarker = L.marker([depLat, depLng], { icon: makeIcon('#00b37e') }).addTo(routeMap)
+                .bindPopup('<b>Origem</b><br>' + (route.departurePoint || route.departureAddress || ''));
+            bounds.push([depLat, depLng]);
+        }
+
+        if (hasDest) {
+            if (destMarker) routeMap.removeLayer(destMarker);
+            destMarker = L.marker([destLat, destLng], { icon: makeIcon('#ff5e00') }).addTo(routeMap)
+                .bindPopup('<b>Destino</b><br>' + (route.destiny || route.destinationAddress || ''));
+            bounds.push([destLat, destLng]);
+        }
+
+        if (routeLine) routeMap.removeLayer(routeLine);
+
+        if (hasDep && hasDest) {
+            var url = 'https://router.project-osrm.org/route/v1/driving/' + depLng + ',' + depLat + ';' + destLng + ',' + destLat + '?geometries=geojson&overview=full';
+            fetch(url).then(function(r) { return r.json(); }).then(function(data) {
+                if (data.code === 'Ok' && data.routes && data.routes[0]) {
+                    var coords = data.routes[0].geometry.coordinates;
+                    var latlngs = coords.map(function(c) { return [c[1], c[0]]; });
+                    routeLine = L.polyline(latlngs, { color: '#ff5e00', weight: 3, opacity: 0.6 }).addTo(routeMap);
+                    routeMap.fitBounds(routeLine.getBounds(), { padding: [30, 30] });
+                }
+            }).catch(function() {});
+        }
+
+        if (bounds.length > 0) {
+            routeMap.fitBounds(L.latLngBounds(bounds), { padding: [30, 30], maxZoom: 15 });
+        }
+    }
+
+    function paymentBadgeClass(status) {
+        if (status === 'EM_DAY') return 'payment-em-dia';
+        if (status === 'PENDING') return 'payment-pendente';
+        return 'payment-atrasado';
+    }
+
+    function paymentLabel(status) {
+        if (status === 'EM_DAY') return 'Em Dia';
+        if (status === 'PENDING') return 'Pendente';
+        return 'Atrasado';
+    }
+
+    async function carregarDetalhes() {
+        try {
+            var [routeRes, userRes] = await Promise.all([
+                fetch('/api/admin/' + userId + '/routes/' + routeId + '/details', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                }),
+                fetch('/user/' + userId, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                })
+            ]);
+
+            if (!routeRes.ok) {
+                if (routeRes.status === 403) { window.location.href = '/auth/login'; return; }
+                throw new Error('Erro ' + routeRes.status);
+            }
+
+            var data = await routeRes.json();
+            renderizar(data);
+
+            if (userRes.ok) {
+                var userData = await userRes.json();
+                atualizarAvatar(userData);
+            }
+        } catch (err) {
+            document.getElementById('loadingView').innerHTML = '<div class="text-center"><p class="text-danger">Erro ao carregar dados: ' + err.message + '</p><button class="btn btn-custom-solid mt-2" onclick="location.reload()">Tentar novamente</button></div>';
+        }
+    }
+
+    function atualizarAvatar(userData) {
+        var avatar = document.getElementById('adminAvatar');
+        if (userData.userImageUrl && userData.userImageUrl !== 'padrao') {
+            avatar.style.background = 'url(' + userData.userImageUrl + ') center/cover no-repeat';
+            avatar.textContent = '';
+        } else {
+            var name = userData.fullName || 'Admin';
+            var parts = name.trim().split(/\s+/);
+            var initials = parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : parts[0].substring(0, 2);
+            avatar.textContent = initials.toUpperCase();
+        }
+    }
+
+    function renderizar(data) {
+        var route = data.route;
+        var driver = data.driver;
+        var passengers = data.passengers || [];
+        var stats = data.stats || {};
+        allPassengers = passengers;
+
+        document.getElementById('routeTitle').textContent = (route.departurePoint || 'Origem') + ' \u2192 ' + (route.destiny || 'Destino');
+
+        document.getElementById('statTotal').textContent = stats.totalPassengers || 0;
+        document.getElementById('statEmDay').textContent = stats.emDayCount || 0;
+        document.getElementById('statLate').textContent = (stats.pendingCount || 0) + (stats.lateCount || 0);
+
+        var passengerContainer = document.getElementById('passengerList');
+        passengerContainer.innerHTML = '';
+
+        if (passengers.length === 0) {
+            passengerContainer.innerHTML = '<div class="text-muted-custom text-center py-3">Nenhum passageiro inscrito nesta rota</div>';
+        } else {
+            passengers.forEach(function(p) {
+                var div = document.createElement('div');
+                div.className = 'info-card d-flex justify-content-between align-items-center m-0';
+
+                div.innerHTML =
+                    '<div>' +
+                        '<div class="fw-bold" style="font-size: 0.9rem;">' + escapeHtml(p.fullName || 'Desconhecido') + '</div>' +
+                        (p.presenceTypeLabel ? '<div class="text-muted-custom text-xs">' + escapeHtml(p.presenceTypeLabel) + '</div>' : '') +
+                    '</div>' +
+                    '<div class="d-flex align-items-center gap-2">' +
+                        '<span class="payment-badge ' + paymentBadgeClass(p.paymentStatus) + '">' + paymentLabel(p.paymentStatus) + '</span>' +
+                    '</div>';
+                passengerContainer.appendChild(div);
+            });
+        }
+
+        if (driver) {
+            document.getElementById('driverName').textContent = driver.fullName || '--';
+            document.getElementById('driverLicence').textContent = 'CNH: ' + (driver.licence || '--');
+        } else {
+            document.getElementById('driverName').textContent = 'Sem motorista';
+            document.getElementById('driverLicence').textContent = '--';
+        }
+
+        document.getElementById('originName').textContent = route.departurePoint || '--';
+        document.getElementById('originTime').textContent = route.departureTime ? 'Sa\u00EDda ' + route.departureTime : '--';
+
+        document.getElementById('stopsCount').textContent = passengers.length > 0 ? passengers.length : '0';
+        document.getElementById('stopsDetail').textContent = route.estimatedDuration || '--';
+
+        document.getElementById('destinyName').textContent = route.destiny || '--';
+        document.getElementById('destinyTime').textContent = route.destinationTime ? 'Chegada ' + route.destinationTime : '--';
+
+        if (route.departureAddress && document.getElementById('originTime')) {
+            var addrEl = document.createElement('div');
+            addrEl.className = 'text-muted-custom text-xs mt-1';
+            addrEl.textContent = route.departureAddress;
+            document.getElementById('originTime').parentNode.insertBefore(addrEl, document.getElementById('originTime').nextSibling);
+        }
+
+        document.getElementById('loadingView').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+
+        if (typeof L !== 'undefined') {
+            setTimeout(function() { initMap(route); }, 100);
+        }
+    }
+
+    function abrirModalEditar() {
+        var passengers = allPassengers;
+
+        document.getElementById('editDeparturePoint').value = document.getElementById('originName').textContent !== '--' ? document.getElementById('originName').textContent : '';
+        document.getElementById('editDestiny').value = document.getElementById('destinyName').textContent !== '--' ? document.getElementById('destinyName').textContent : '';
+        document.getElementById('editDepartureTime').value = document.getElementById('originTime').textContent.replace('Sa\u00EDda ', '');
+        document.getElementById('editDestinationTime').value = document.getElementById('destinyTime').textContent.replace('Chegada ', '');
+        document.getElementById('editEstimatedDuration').value = document.getElementById('stopsDetail').textContent !== '--' ? document.getElementById('stopsDetail').textContent : '';
+
+        var container = document.getElementById('editPassengerList');
+        container.innerHTML = '';
+
+        if (passengers.length === 0) {
+            container.innerHTML = '<div class="text-muted-custom text-center py-3">Nenhum passageiro inscrito</div>';
+        } else {
+            passengers.forEach(function(p) {
+                var card = document.createElement('div');
+                card.className = 'user-card';
+
+                var currentStatus = p.paymentStatus === 'EM_DAY' ? 'EM_DAY' : 'PENDING';
+                var isEmDia = currentStatus === 'EM_DAY';
+
+                card.innerHTML =
+                    '<div class="user-name">' + escapeHtml(p.fullName) + '</div>' +
+                    '<div class="status-group" data-user-id="' + p.id + '" data-status="' + currentStatus + '">' +
+                        '<span class="status-btn em-dia' + (isEmDia ? ' active' : '') + '" data-value="EM_DAY" onclick="togglePaymentStatus(this)">Em Dia</span>' +
+                        '<span class="status-btn pendente' + (!isEmDia ? ' active' : '') + '" data-value="PENDING" onclick="togglePaymentStatus(this)">Pendente</span>' +
+                    '</div>';
+                container.appendChild(card);
+            });
+        }
+
+        var modal = new bootstrap.Modal(document.getElementById('modalEditarRota'));
+        modal.show();
+    }
+
+    function togglePaymentStatus(el) {
+        var group = el.closest('.status-group');
+        group.querySelectorAll('.status-btn').forEach(function(btn) { btn.classList.remove('active'); });
+        el.classList.add('active');
+        group.dataset.status = el.dataset.value;
+    }
+
+    document.getElementById('btnSalvarPagamentos').addEventListener('click', async function() {
+        var btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Salvando...';
+
+        var payments = [];
+        document.querySelectorAll('.status-group').forEach(function(group) {
+            payments.push({
+                userId: parseInt(group.dataset.userId),
+                paymentStatus: group.dataset.status
+            });
+        });
+
+        try {
+            var res = await fetch('/api/admin/' + userId + '/routes/' + routeId + '/payment', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({ payments: payments })
+            });
+
+            if (res.ok) {
+                var modal = bootstrap.Modal.getInstance(document.getElementById('modalEditarRota'));
+                if (modal) modal.hide();
+                await carregarDetalhes();
+            } else {
+                alert('Erro ao salvar pagamentos. Tente novamente.');
+            }
+        } catch (err) {
+            alert('Erro de conexão.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Salvar Alterações';
+        }
+    });
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(text));
+        return div.innerHTML;
+    }
+
+    function getInitials(name) {
+        if (!name) return 'AD';
+        var parts = name.trim().split(/\s+/);
+        return parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : parts[0].substring(0, 2);
+    }
+
+    function gerenciarRotas() {
+        window.location.href = '/admin/routes';
+    }
+
+    function sair() {
+        document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        document.cookie = 'userId=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        document.cookie = 'driverId=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        document.cookie = 'role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        window.location.href = '/auth/login';
+    }
+
+    function editarPerfil() {
+        carregarDadosPerfil();
+        var offcanvas = new bootstrap.Offcanvas(document.getElementById('offcanvasEditarPerfil'));
+        offcanvas.show();
+    }
+
+    async function carregarDadosPerfil() {
+        try {
+            var res = await fetch('/user/' + userId, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!res.ok) return;
+            var data = await res.json();
+            document.getElementById('editFullName').value = data.fullName || '';
+            document.getElementById('editAdress').value = data.adress || '';
+            document.getElementById('editCity').value = data.city || '';
+            if (data.birthday) {
+                document.getElementById('editBirthDate').value = data.birthday;
+            }
+            var preview = document.getElementById('editImagePreview');
+            if (data.userImageUrl && data.userImageUrl !== 'padrao') {
+                preview.src = data.userImageUrl;
+                preview.style.display = 'block';
+            } else {
+                preview.src = '';
+                preview.style.display = 'none';
+            }
+            if (data.userImageUrl) {
+                document.getElementById('editUserImageUrl').value = data.userImageUrl;
+            }
+        } catch (e) {
+            console.error('Erro ao carregar perfil:', e);
+        }
+    }
+
+    document.getElementById('editImageInput').addEventListener('change', function() {
+        var file = this.files[0];
+        if (!file) return;
+        var preview = document.getElementById('editImagePreview');
+        preview.src = URL.createObjectURL(file);
+        preview.style.display = 'block';
+        preview.style.width = '100px';
+        preview.style.height = '100px';
+        preview.style.borderRadius = '50%';
+        preview.style.objectFit = 'cover';
+        preview.style.border = '3px solid var(--accent-orange)';
+        preview.style.margin = '0 auto';
+    });
+
+    document.getElementById('btnSalvarPerfil').addEventListener('click', async function() {
+        var btn = this;
+        var originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Salvando...';
+
+        try {
+            var imageUrl = document.getElementById('editUserImageUrl').value || 'padrao';
+            var fileInput = document.getElementById('editImageInput');
+            if (fileInput.files.length > 0) {
+                var formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                var uploadRes = await fetch('/api/upload/image', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token },
+                    body: formData
+                });
+                if (uploadRes.ok) {
+                    var uploadData = await uploadRes.json();
+                    imageUrl = uploadData.imageUrl;
+                }
+            }
+
+            var params = new URLSearchParams();
+            params.append('fullName', document.getElementById('editFullName').value);
+            params.append('adress', document.getElementById('editAdress').value);
+            params.append('city', document.getElementById('editCity').value);
+            params.append('birthDate', document.getElementById('editBirthDate').value);
+            params.append('userImageUrl', imageUrl);
+
+            var updateRes = await fetch('/user/' + userId, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: params.toString()
+            });
+
+            if (updateRes.ok) {
+                var offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasEditarPerfil'));
+                if (offcanvas) offcanvas.hide();
+                location.reload();
+            } else {
+                alert('Erro ao atualizar perfil.');
+            }
+        } catch (e) {
+            console.error('Erro:', e);
+            alert('Erro de conexão.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    });
+
+    carregarDetalhes();
+</script>
+</body>
+</html>
