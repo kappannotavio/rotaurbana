@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rota Urbana – Entrar</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../static/css/LoginStyle.css" />
+</head>
+<body>
+
+<div class="wrapper">
+
+  <section class="hero"> 
+    <div class="hero__img"></div>
+  </section>
+  
+  <div class="hero__copy">
+    <p class="hero__tagline">
+      O caminho que aproxima você<br />
+      do que realmente importa,<br />
+      trazendo mais <span>tempo, segurança</span><br />
+      e tranquilidade para o seu dia.
+    </p>
+  </div>
+
+  <aside class="panel">
+
+    <div class="brand">
+      <div class="brand__name">ROTA<em>URBANA</em></div>
+      <div class="brand__diamond" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M10 2L18 10L10 18L2 10L10 2Z" fill="white"/>
+        </svg>
+      </div>
+    </div>
+
+    <form class="login-form" action="/login" method="post">
+
+      <div class="field">
+        <label class="field__label" for="username">E-MAIL</label>
+        <input class="field__input" type="text" id="username" name="username" placeholder="seu@email.com" autocomplete="username" required />
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="password">SENHA</label>
+        <input class="field__input" type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password" required />
+        <a class="link-forgot" href="/esqueci-senha">Esqueci a senha</a>
+      </div>
+
+      <button class="btn btn--primary" type="submit">Entrar</button>
+
+      <div class="divider">
+        <span class="divider__line"></span>
+        <span class="divider__text">ou</span>
+        <span class="divider__line"></span>
+      </div>
+
+      <button class="btn btn--secondary" type="button" onclick="window.location.href='/cadastro'">
+        Criar Nova Conta
+      </button>
+
+    </form>
+
+  </aside>
+</div>
+
+</body>
+</html>
