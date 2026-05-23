@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Cadastrar Ônibus</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #111116;
+            --bg-card: #18181e;
+            --primary-orange: #ff5722;
+            --primary-teal: #00d28a;
+            --text-muted: #8e8e9e;
+        }
+        body {
+            background-color: var(--bg-main);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+        .text-teal { color: var(--primary-teal); }
+        .text-muted-custom { color: var(--text-muted); }
+        .card-custom {
+            background-color: var(--bg-card);
+            border-radius: 16px;
+            padding: 30px;
+        }
+        .card-custom label {
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            color: #555566;
+            margin-bottom: 6px;
+        }
+        .card-custom input, .card-custom select {
+            background-color: #22222b;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 8px;
+            padding: 12px;
+            width: 100%;
+        }
+        .card-custom input:focus, .card-custom select:focus {
+            outline: none;
+            border-color: var(--primary-teal);
+        }
+        .card-custom select option {
+            background-color: #22222b;
+            color: #fff;
+        }
+        .btn-submit {
+            background-color: var(--primary-orange);
+            color: #fff;
+            font-weight: 700;
+            letter-spacing: 1px;
+            border-radius: 8px;
+            padding: 14px 32px;
+            border: none;
+            width: 100%;
+        }
+        .btn-submit:hover { background-color: #e64a19; color: #fff; }
+        .btn-submit:disabled { opacity: 0.6; }
+        .result-box {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 12px;
+        }
+        .result-box.success { background-color: rgba(0,210,138,0.1); border: 1px solid var(--primary-teal); }
+        .result-box.error { background-color: rgba(255,87,34,0.1); border: 1px solid var(--primary-orange); }
+        .result-box pre {
+            color: #fff;
+            margin: 10px 0 0;
+            font-size: 0.85rem;
+        }
+        #routeMap {
+            height: 300px;
+            border-radius: 12px;
+            z-index: 1;
+        }
+        .geo-input-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .geo-input-group input { flex: 1; }
+        .geo-input-group .btn-geo {
+            background-color: var(--primary-teal);
+            border: none;
+            color: #fff;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+        .geo-input-group .btn-geo:hover { opacity: 0.85; }
+        .marker-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .marker-badge.origin { background-color: rgba(0,210,138,0.2); color: var(--primary-teal); }
+        .marker-badge.dest { background-color: rgba(255,87,34,0.2); color: var(--primary-orange); }
+    </style>
+</head>
+<body>
+<div class="container py-4">
+    <header class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold">Admin</h4>
+            <small class="text-muted-custom">Cadastrar novo ônibus</small>
+        </div>
+        <a href="/auth/login" class="text-muted-custom" style="text-decoration:none;"
+           onclick="document.cookie.split(';').forEach(c => document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/'));">Sair</a>
+    </header>
+
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+            <div class="card-custom mb-4">
+                <h5 class="fw-bold mb-3">Cadastrar Motorista</h5>
+                <form id="driverForm">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label>NOME</label>
+                            <input type="text" id="driverName" required placeholder="João Silva">
+                        </div>
+                        <div class="col-md-4">
+                            <label>E-MAIL</label>
+                            <input type="email" id="driverEmail" required placeholder="joao@email.com">
+                        </div>
+                        <div class="col-md-4">
+                            <label>SENHA</label>
+                            <input type="password" id="driverPassword" required placeholder="••••••">
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label>CNH</label>
+                            <input type="text" id="driverLicence" required placeholder="12345678900">
+                        </div>
+                        <div class="col-md-4">
+                            <label>ENDEREÇO</label>
+                            <input type="text" id="driverAdress" required placeholder="Rua Exemplo, 123">
+                        </div>
+                        <div class="col-md-4">
+                            <label>CIDADE</label>
+                            <input type="text" id="driverCity" required placeholder="São Paulo">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-submit" id="btnDriverSubmit" style="background-color:var(--primary-teal);">CADASTRAR MOTORISTA</button>
+                    <div id="driverResult"></div>
+                </form>
+            </div>
+
+            <div class="card-custom">
+                <h5 class="fw-bold mb-3">Cadastrar Ônibus</h5>
+                <form id="busForm">
+                    <div class="mb-3">
+                        <label>MOTORISTA</label>
+                        <select id="driverSelect" required>
+                            <option value="">Carregando motoristas...</option>
+                        </select>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label>MARCA</label>
+                            <input type="text" id="brand" required placeholder="Mercedes">
+                        </div>
+                        <div class="col-md-4">
+                            <label>MODELO</label>
+                            <input type="text" id="model" required placeholder="OF-1721">
+                        </div>
+                        <div class="col-md-4">
+                            <label>COR</label>
+                            <input type="text" id="color" required placeholder="Branco">
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label>PLACA</label>
+                            <input type="text" id="sign" required maxlength="8" placeholder="ABC-1234" style="text-transform:uppercase;letter-spacing:2px;">
+                        </div>
+                        <div class="col-md-4">
+                            <label>QUILOMETRAGEM</label>
+                            <input type="number" id="mileage" step="0.1" required placeholder="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label>URL DA IMAGEM</label>
+                            <input type="text" id="busImageUrl" placeholder="https://...">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-submit" id="btnSubmit">CADASTRAR ÔNIBUS</button>
+                </form>
+                <div id="result"></div>
+            </div>
+
+            <div class="card-custom mt-4">
+                <h5 class="fw-bold mb-3">Cadastrar Rota</h5>
+                <form id="routeForm">
+                    <div class="mb-3">
+                        <label>ÔNIBUS</label>
+                        <select id="busSelectRoute" required>
+                            <option value="">Carregando ônibus...</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="d-flex align-items-center gap-2"><span class="marker-badge origin">ORIGEM</span> PONTO DE EMBARQUE</label>
+                        <div class="geo-input-group mb-2">
+                            <input type="text" id="searchOrigin" class="form-control" placeholder="Digite o endereço da origem...">
+                            <button type="button" class="btn-geo" id="btnSearchOrigin"><i class="bi bi-search"></i></button>
+                        </div>
+                        <input type="text" id="departurePoint" placeholder="Nome do ponto (ex: Ponto 03)" class="form-control">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="d-flex align-items-center gap-2"><span class="marker-badge dest">DESTINO</span> PONTO DE DESEMBARQUE</label>
+                        <div class="geo-input-group mb-2">
+                            <input type="text" id="searchDestiny" class="form-control" placeholder="Digite o endereço do destino...">
+                            <button type="button" class="btn-geo" id="btnSearchDestiny"><i class="bi bi-search"></i></button>
+                        </div>
+                        <input type="text" id="destiny" placeholder="Nome do destino (ex: Portão Principal)" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>MAPA — Clique para marcar origem (verde) e destino (vermelho)</label>
+                        <div id="routeMap"></div>
+                    </div>
+
+                    <input type="hidden" id="departureLatitude">
+                    <input type="hidden" id="departureLongitude">
+                    <input type="hidden" id="destinationLatitude">
+                    <input type="hidden" id="destinationLongitude">
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label>HORA DE SAÍDA</label>
+                            <input type="time" id="departureTime" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label>HORA DE CHEGADA</label>
+                            <input type="time" id="destinationTime" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label>ENDEREÇO DE ORIGEM</label>
+                            <input type="text" id="departureAddress" class="form-control" placeholder="Rua Exemplo, 123">
+                        </div>
+                        <div class="col-md-6">
+                            <label>ENDEREÇO DE DESTINO</label>
+                            <input type="text" id="destinationAddress" class="form-control" placeholder="Av. Exemplo, 456">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>DURAÇÃO ESTIMADA</label>
+                        <input type="text" id="estimatedDuration" class="form-control" placeholder="~ 50 minutos">
+                    </div>
+
+                    <button type="submit" class="btn btn-submit" id="btnRouteSubmit" style="background-color:var(--primary-teal);">CADASTRAR ROTA</button>
+                </form>
+                <div id="routeResult"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+function getCookie(name) {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? match[2] : null;
+}
+
+    const token = getCookie("token");
+    const userId = getCookie("userId");
+    const role = getCookie("role");
+
+    if (!token || role !== "ADMIN") {
+        window.location.href = "/auth/login";
+    }
+
+    loadDrivers();
+    loadBuses();
+
+    // ---- Mapa para seleção de rota ----
+    let routeMap, originMarker, destMarker;
+    let isSettingOrigin = true;
+
+    function initRouteMap() {
+        routeMap = L.map("routeMap", { zoomControl: true }).setView([-29.6, -54.0], 13);
+        L.tileLayer("https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png", {
+            attribution: "&copy; OpenStreetMap contributors",
+            maxZoom: 19
+        }).addTo(routeMap);
+
+        routeMap.on("click", function(e) {
+            if (isSettingOrigin) {
+                if (originMarker) routeMap.removeLayer(originMarker);
+                originMarker = L.circleMarker(e.latlng, {
+                    radius: 12, color: "#00d28a", fillColor: "#00d28a", fillOpacity: 0.9
+                }).addTo(routeMap)
+                  .bindPopup("<b>Origem</b>").openPopup();
+                document.getElementById("departureLatitude").value = e.latlng.lat.toFixed(6);
+                document.getElementById("departureLongitude").value = e.latlng.lng.toFixed(6);
+                isSettingOrigin = false;
+            } else {
+                if (destMarker) routeMap.removeLayer(destMarker);
+                destMarker = L.circleMarker(e.latlng, {
+                    radius: 12, color: "#ff5722", fillColor: "#ff5722", fillOpacity: 0.9
+                }).addTo(routeMap)
+                  .bindPopup("<b>Destino</b>").openPopup();
+                document.getElementById("destinationLatitude").value = e.latlng.lat.toFixed(6);
+                document.getElementById("destinationLongitude").value = e.latlng.lng.toFixed(6);
+                isSettingOrigin = true;
+            }
+        });
+    }
+
+    function geocode(query, callback) {
+        fetch("https://nominatim.openstreetmap.org/search?format=json&limit=5&q=" + encodeURIComponent(query))
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                callback(data);
+            })
+            .catch(function() { alert("Erro ao buscar endereço"); });
+    }
+
+    document.getElementById("btnSearchOrigin").addEventListener("click", function() {
+        var q = document.getElementById("searchOrigin").value.trim();
+        if (!q) return;
+        geocode(q, function(results) {
+            if (!results || results.length === 0) { alert("Endereço não encontrado"); return; }
+            var r = results[0];
+            var lat = parseFloat(r.lat), lng = parseFloat(r.lon);
+            if (originMarker) routeMap.removeLayer(originMarker);
+            originMarker = L.circleMarker([lat, lng], {
+                radius: 12, color: "#00d28a", fillColor: "#00d28a", fillOpacity: 0.9
+            }).addTo(routeMap).bindPopup("<b>Origem</b><br>" + r.display_name).openPopup();
+            document.getElementById("departureLatitude").value = lat.toFixed(6);
+            document.getElementById("departureLongitude").value = lng.toFixed(6);
+            document.getElementById("departureAddress").value = r.display_name;
+            routeMap.setView([lat, lng], 15);
+            isSettingOrigin = false;
+        });
+    });
+
+    document.getElementById("btnSearchDestiny").addEventListener("click", function() {
+        var q = document.getElementById("searchDestiny").value.trim();
+        if (!q) return;
+        geocode(q, function(results) {
+            if (!results || results.length === 0) { alert("Endereço não encontrado"); return; }
+            var r = results[0];
+            var lat = parseFloat(r.lat), lng = parseFloat(r.lon);
+            if (destMarker) routeMap.removeLayer(destMarker);
+            destMarker = L.circleMarker([lat, lng], {
+                radius: 12, color: "#ff5722", fillColor: "#ff5722", fillOpacity: 0.9
+            }).addTo(routeMap).bindPopup("<b>Destino</b><br>" + r.display_name).openPopup();
+            document.getElementById("destinationLatitude").value = lat.toFixed(6);
+            document.getElementById("destinationLongitude").value = lng.toFixed(6);
+            document.getElementById("destinationAddress").value = r.display_name;
+            routeMap.setView([lat, lng], 15);
+            isSettingOrigin = true;
+        });
+    });
+
+    if (typeof L !== 'undefined') {
+        initRouteMap();
+    }
+
+    function loadDrivers() {
+        fetch(`/api/admin/${userId}/drivers`, {
+            headers: { "Authorization": "Bearer " + token }
+        })
+            .then(res => {
+                if (!res.ok) throw new Error("Erro ao carregar motoristas");
+                return res.json();
+            })
+            .then(drivers => {
+                const select = document.getElementById("driverSelect");
+                select.innerHTML = '<option value="">Selecione um motorista</option>';
+                drivers.forEach(d => {
+                    const opt = document.createElement("option");
+                    opt.value = d.idDriver;
+                    opt.textContent = d.fullName + " - " + d.licence + " (" + d.email + ")";
+                    select.appendChild(opt);
+                });
+            })
+            .catch(() => {
+                document.getElementById("driverSelect").innerHTML = '<option value="">Erro ao carregar</option>';
+            });
+    }
+
+    function loadBuses() {
+        fetch(`/api/admin/${userId}/buses`, {
+            headers: { "Authorization": "Bearer " + token }
+        })
+            .then(res => {
+                if (!res.ok) throw new Error("Erro ao carregar ônibus");
+                return res.json();
+            })
+            .then(buses => {
+                const select = document.getElementById("busSelectRoute");
+                select.innerHTML = '<option value="">Selecione um ônibus</option>';
+                buses.forEach(b => {
+                    const opt = document.createElement("option");
+                    opt.value = b.idBus;
+                    opt.textContent = b.sign + " - " + b.brand + " " + b.model + " (" + b.driverName + ")";
+                    select.appendChild(opt);
+                });
+            })
+            .catch(() => {
+                document.getElementById("busSelectRoute").innerHTML = '<option value="">Erro ao carregar</option>';
+            });
+    }
+
+
+document.getElementById("driverForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById("btnDriverSubmit");
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "CADASTRANDO...";
+
+    const data = {
+        fullName: document.getElementById("driverName").value,
+        email: document.getElementById("driverEmail").value,
+        password: document.getElementById("driverPassword").value,
+        licence: document.getElementById("driverLicence").value,
+        adress: document.getElementById("driverAdress").value,
+        city: document.getElementById("driverCity").value
+    };
+
+    try {
+        const res = await fetch(`/api/admin/${userId}/drivers`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+            body: JSON.stringify(data)
+        });
+
+        const resultDiv = document.getElementById("driverResult");
+
+        if (res.ok) {
+            resultDiv.innerHTML = '<div class="result-box success">' +
+                '<strong style="color:var(--primary-teal);">Motorista cadastrado com sucesso!</strong></div>';
+            document.getElementById("driverForm").reset();
+            loadDrivers();
+        } else {
+            const err = await res.text();
+            resultDiv.innerHTML = '<div class="result-box error">' +
+                '<strong style="color:var(--primary-orange);">Erro</strong><pre>' + err + '</pre></div>';
+        }
+    } catch (err) {
+        document.getElementById("driverResult").innerHTML = '<div class="result-box error">' +
+            '<strong style="color:var(--primary-orange);">Erro de rede</strong></div>';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+});
+
+document.getElementById("busForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const btn = document.getElementById("btnSubmit");
+    btn.disabled = true;
+    btn.textContent = "CADASTRANDO...";
+
+    const data = {
+        brand: document.getElementById("brand").value,
+        model: document.getElementById("model").value,
+        color: document.getElementById("color").value,
+        sign: document.getElementById("sign").value.toUpperCase(),
+        mileage: parseFloat(document.getElementById("mileage").value),
+        busImageUrl: document.getElementById("busImageUrl").value,
+        driverId: parseInt(document.getElementById("driverSelect").value)
+    };
+
+    try {
+        const res = await fetch(`/api/admin/${userId}/buses`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+            body: JSON.stringify(data)
+        });
+
+        const resultDiv = document.getElementById("result");
+
+        if (res.ok) {
+            resultDiv.innerHTML = '<div class="result-box success">' +
+                '<strong style="color:var(--primary-teal);">Ônibus cadastrado com sucesso!</strong></div>';
+            document.getElementById("busForm").reset();
+            loadBuses();
+        } else {
+            const err = await res.text();
+            resultDiv.innerHTML = '<div class="result-box error">' +
+                '<strong style="color:var(--primary-orange);">Erro</strong><pre>' + err + '</pre></div>';
+        }
+    } catch (err) {
+        document.getElementById("result").innerHTML = '<div class="result-box error">' +
+            '<strong style="color:var(--primary-orange);">Erro de rede</strong></div>';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "CADASTRAR ÔNIBUS";
+    }
+});
+
+document.getElementById("routeForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const btn = document.getElementById("btnRouteSubmit");
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "CADASTRANDO...";
+
+    const data = {
+        busId: document.getElementById("busSelectRoute").value,
+        destiny: document.getElementById("destiny").value,
+        departurePoint: document.getElementById("departurePoint").value,
+        departureAddress: document.getElementById("departureAddress").value,
+        destinationAddress: document.getElementById("destinationAddress").value,
+        estimatedDuration: document.getElementById("estimatedDuration").value,
+        departureTime: document.getElementById("departureTime").value,
+        destinationTime: document.getElementById("destinationTime").value,
+        departureLatitude: document.getElementById("departureLatitude").value,
+        departureLongitude: document.getElementById("departureLongitude").value,
+        destinationLatitude: document.getElementById("destinationLatitude").value,
+        destinationLongitude: document.getElementById("destinationLongitude").value
+    };
+
+    try {
+        const res = await fetch(`/api/admin/${userId}/routes`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+            body: JSON.stringify(data)
+        });
+
+        const resultDiv = document.getElementById("routeResult");
+
+        if (res.ok) {
+            resultDiv.innerHTML = '<div class="result-box success">' +
+                '<strong style="color:var(--primary-teal);">Rota cadastrada com sucesso!</strong></div>';
+            document.getElementById("routeForm").reset();
+        } else {
+            const err = await res.text();
+            resultDiv.innerHTML = '<div class="result-box error">' +
+                '<strong style="color:var(--primary-orange);">Erro</strong><pre>' + err + '</pre></div>';
+        }
+    } catch (err) {
+        document.getElementById("routeResult").innerHTML = '<div class="result-box error">' +
+            '<strong style="color:var(--primary-orange);">Erro de rede</strong></div>';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+});
+</script>
+</body>
+</html>

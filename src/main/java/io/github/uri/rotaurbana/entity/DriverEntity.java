@@ -1,7 +1,11 @@
 package io.github.uri.rotaurbana.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "driver")
 public class DriverEntity {
@@ -13,6 +17,6 @@ public class DriverEntity {
     private String licence;
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "fkUserId")
+    @JoinColumn(name = "fk_user_id")
     private UserEntity user;
 }

@@ -2,10 +2,19 @@ spring:
   application:
     name: rotaurbana
   datasource:
-    url: jdbc:mysql://localhost:3306/rotaurbana?useSSL=false&serverTimezone=UTC
+    url: jdbc:postgresql://localhost:5432/rotaurbana
     username: SEU_USER
     password: SUA_SENHA
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
 
 api:
   security:

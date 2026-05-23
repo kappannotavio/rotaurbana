@@ -1,57 +1,371 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
-
-    <title>Mapa com Ônibus</title>
+    <title>Dashboard do Passageiro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
 
     <style>
-        body{
-            margin:0;
-            font-family: Arial, Helvetica, sans-serif;
-            background:#f4f4f4;
-            display:flex;
-            flex-direction:column;
-            align-items:center;
+        :root {
+            --bg-main: #111116;
+            --bg-card: #18181e;
+            --bg-card-hover: #1e1e26;
+            --primary-orange: #ff5722;
+            --primary-teal: #00d28a;
+            --text-muted: #8e8e9e;
+            --border-blue: #0088ff;
         }
 
-        h1{
-            margin-top:30px;
+        body {
+            background-color: var(--bg-main);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
         }
 
-        h2{
-            font-weight:normal;
-            color:#555;
+        .text-orange { color: var(--primary-orange); }
+        .text-teal { color: var(--primary-teal); }
+        .text-muted-custom { color: var(--text-muted); }
+        .bg-teal { background-color: var(--primary-teal) !important; }
+
+        .payment-badge {
+            border: 1px solid var(--primary-teal);
+            color: var(--primary-teal);
+            background-color: rgba(0, 210, 138, 0.1);
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+            padding: 8px 16px;
+        }
+        .avatar-box {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
         }
 
-        #mapid{
-            margin-top:20px;
-            height:400px;
-            width:80%;
-            max-width:900px;
-            border-radius:12px;
-            box-shadow:0 10px 25px rgba(0,0,0,0.2);
+        .map-container {
+            width: 100%;
+            height: 400px;
+            background: url('https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80') center/cover no-repeat;
+            border-radius: 16px;
+            position: relative;
+        }
+        .map-container::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(200, 240, 220, 0.85);
+            border-radius: 16px;
+        }
+
+        .info-card {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 16px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .info-card h6 {
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            color: #555566;
+            margin-bottom: 8px;
+        }
+
+        .route-selection-box {
+            border: 2px solid var(--border-blue);
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+        }
+        .section-title {
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            color: #555566;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-title::after {
+            content: "";
+            height: 1px;
+            background-color: #ff5722;
+            flex-grow: 1;
+            opacity: 0.5;
+        }
+
+        .route-option {
+            background-color: var(--bg-card);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 12px;
+        }
+        .route-option:last-child { margin-bottom: 0; }
+        .route-option:hover { background-color: var(--bg-card-hover); }
+        .route-option.active { border-color: var(--primary-orange); }
+
+        .custom-radio {
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            border: 2px solid #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .route-option.active .custom-radio {
+            border-color: var(--primary-orange);
+            background-color: var(--primary-orange);
+            background-clip: content-box;
+            padding: 4px;
+        }
+
+        .route-scroll-area {
+            max-height: 280px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+        .route-scroll-area::-webkit-scrollbar { width: 4px; }
+        .route-scroll-area::-webkit-scrollbar-track { background: transparent; }
+        .route-scroll-area::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+
+        .presence-box {
+            background-color: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+        }
+        .btn-presence {
+            background-color: #22222b;
+            color: #8e8e9e;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            padding: 15px 10px;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .btn-presence:hover { background-color: #2a2a35; color: #fff; }
+        .btn-presence.active { border-color: var(--primary-orange); color: var(--primary-orange); background-color: transparent; }
+        .btn-presence i { font-size: 1.5rem; margin-bottom: 5px; display: block; }
+
+        .btn-confirm {
+            background-color: var(--primary-orange);
+            color: white;
+            font-weight: 700;
+            letter-spacing: 1px;
+            border-radius: 12px;
+            padding: 16px;
+            transition: background-color 0.2s;
+        }
+        .btn-confirm:hover { background-color: #e64a19; color: white; }
+
+        @media (max-width: 768px) {
+            .info-cards-container { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 10px; }
+            .info-cards-container .col-4 { min-width: 200px; }
+        }
+
+        .subscribe-card {
+            background-color: var(--bg-card);
+            border: 2px solid var(--primary-teal);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+        }
+        .subscribe-card input {
+            background-color: #22222b;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 1.2rem;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .subscribe-card input:focus {
+            outline: none;
+            border-color: var(--primary-teal);
+        }
+        .btn-subscribe {
+            background-color: var(--primary-teal);
+            color: #000;
+            font-weight: 700;
+            border-radius: 8px;
+            padding: 12px 32px;
+        }
+        .btn-subscribe:hover {
+            background-color: #00b87a;
+            color: #000;
         }
     </style>
 </head>
-
 <body>
 
-<h1>Sua localização</h1>
-<h2 id="coords">Carregando...</h2>
+<div class="container-fluid py-4 px-md-5">
 
-<div id="mapid"></div>
+    <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
+        <div>
+            <h4 class="mb-1 fw-bold">Bem-vindo, (Username)</h4>
+            <small class="text-muted-custom" id="currentDate"></small>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <span class="payment-badge rounded-2 text-uppercase fw-bold">Pagamento em dia</span>
+            <div class="avatar-box bg-teal"></div>
+        </div>
+    </header>
 
+    <div id="subscribeSection" class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="subscribe-card">
+                <div class="text-teal fw-bold mb-2" style="font-size: 0.85rem; letter-spacing: 2px;">ACOMPANHAR ÔNIBUS</div>
+                <h3 class="fw-bold mb-3">Digite a placa do ônibus</h3>
+                <p class="text-muted-custom mb-4">Insira a placa do ônibus que você quer rastrear</p>
+                <input type="text" id="signInput" class="w-100 mb-3" placeholder="ABC-1234" maxlength="8">
+                <div id="subscribeError" class="text-danger mb-2" style="display: none;"></div>
+                <button id="btnSubscribe" class="btn btn-subscribe w-100">ASSINAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="trackingSection" class="row g-4" style="display: none;">
+        <div class="col-lg-7">
+            <div class="mb-3">
+                <div class="text-orange fw-bold mb-1" style="font-size: 0.85rem; letter-spacing: 2px;">PASSAGEIRO</div>
+                <h2 class="fw-bold text-white m-0">ROTA DE HOJE</h2>
+                <h2 id="coords" class="text-muted-custom mt-1" style="font-size: 0.9rem;"></h2>
+            </div>
+
+            <div id="mapid" style="height: 400px; border-radius: 16px; margin-bottom: 16px; z-index: 1; position: relative;"></div>
+
+            <div class="row g-3 info-cards-container">
+                <div class="col-4">
+                    <div class="info-card">
+                        <h6 class="text-uppercase m-0">Embarque</h6>
+                        <div class="text-teal fw-bold fs-5 mb-1">Ponto 03</div>
+                        <small class="text-muted-custom" style="font-size: 0.8rem;">R. Boa vista, 333</small>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="info-card">
+                        <h6 class="text-uppercase m-0">Desembarque</h6>
+                        <div class="text-orange fw-bold fs-5 mb-1">Portão Princ.</div>
+                        <small class="text-muted-custom" style="font-size: 0.8rem;">Av. Batista Bonoto Sobrinho, 733</small>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="info-card">
+                        <h6 class="text-uppercase m-0">Saída</h6>
+                        <div class="text-teal fw-bold fs-5 mb-1">17:50</div>
+                        <small class="text-muted-custom" style="font-size: 0.8rem;">~ 50 minutos</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="route-selection-box mb-4">
+                <div class="section-title text-uppercase mb-3">Selecionar Rota</div>
+                <div class="route-scroll-area">
+                    <div class="route-option active d-flex justify-content-between align-items-center" data-route-id="itacurubi-santiago">
+                        <div>
+                            <h5 class="fw-bold mb-1 fs-6">Itacurubi <i class="bi bi-arrow-right text-muted-custom mx-1"></i> Santiago</h5>
+                            <div class="text-muted-custom" style="font-size: 0.85rem;">Via urbana Itac. • 9 paradas</div>
+                            <div class="text-muted-custom" style="font-size: 0.85rem;">Saída: 17:50 • ~ 50 min</div>
+                        </div>
+                        <div class="custom-radio"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="presence-box mb-4">
+                <div class="section-title text-uppercase mb-3">Presença de Hoje</div>
+                <div class="d-flex gap-3">
+                    <button class="btn btn-presence active flex-fill d-flex flex-column align-items-center" data-presence-type="vai_volta">
+                        <i class="bi bi-arrow-repeat"></i>
+                        <span>Vai e Volta</span>
+                    </button>
+                    <button class="btn btn-presence flex-fill d-flex flex-column align-items-center" data-presence-type="so_vai">
+                        <i class="bi bi-arrow-right"></i>
+                        <span>Só Vai</span>
+                    </button>
+                    <button class="btn btn-presence flex-fill d-flex flex-column align-items-center" data-presence-type="so_volta">
+                        <i class="bi bi-arrow-left"></i>
+                        <span>Só Volta</span>
+                    </button>
+                </div>
+            </div>
+
+            <button id="btnConfirmar" class="btn btn-confirm w-100 fs-5 text-uppercase shadow-lg">Confirmar Presença</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
 
-<script src="script/Config.js"></script>
-<script src="script/MapBuilding.js"></script>
+<script src="/js/RouteSelection.js"></script>
+<script src="/js/Config.js"></script>
+<script src="/js/MapBuilding.js"></script>
 
 <script>
-    startLocationTracking(updateMap);
+    document.getElementById("currentDate").textContent = new Date().toLocaleDateString("pt-BR", {
+        weekday: "long", year: "numeric", month: "long", day: "numeric"
+    });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    let busId = urlParams.get("busId");
+
+    if (!token) {
+        window.location.href = "/auth/login";
+    }
+
+    if (busId) {
+        document.getElementById("subscribeSection").style.display = "none";
+        document.getElementById("trackingSection").style.display = "";
+        startLocationTracking(busId, updateMap);
+    }
+
+    document.getElementById("btnSubscribe").addEventListener("click", async function () {
+        const sign = document.getElementById("signInput").value.trim().toUpperCase();
+        const errorEl = document.getElementById("subscribeError");
+
+        if (!sign) {
+            errorEl.textContent = "Digite a placa do ônibus";
+            errorEl.style.display = "";
+            return;
+        }
+
+        errorEl.style.display = "none";
+
+        try {
+            const res = await fetch(`${API_URL}api/passenger/${userId}/subscribe`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({ sign: sign })
+            });
+
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(errText || "Erro ao assinar");
+            }
+
+            const data = await res.json();
+            window.location.href = "/map?busId=" + data.idBus;
+        } catch (err) {
+            errorEl.textContent = "Ônibus não encontrado com esta placa";
+            errorEl.style.display = "";
+        }
+    });
 </script>
 
 </body>
