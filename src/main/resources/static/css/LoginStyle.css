@@ -18,7 +18,6 @@ html, body {
   font-family: 'Barlow', sans-serif;
   background: var(--page-bg);
   color: var(--text-primary);
-  overflow: hidden;
 }
 
 .wrapper {
@@ -273,7 +272,6 @@ html, body {
 }
 
 @media (max-width: 767.98px) {
-  html, body { overflow: auto; }
   .wrapper {
     height: auto;
     min-height: 100vh;

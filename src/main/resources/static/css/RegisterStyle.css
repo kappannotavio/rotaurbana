@@ -18,12 +18,11 @@ html, body {
   font-family: 'Barlow', sans-serif;
   background: var(--page-bg);
   color: var(--text-primary);
-  overflow: hidden;
 }
 
 .wrapper {
   position: relative;
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -263,7 +262,6 @@ html, body {
 }
 
 @media (max-width: 767.98px) {
-  html, body { overflow: auto; }
   .wrapper {
     height: auto;
     min-height: 100vh;
