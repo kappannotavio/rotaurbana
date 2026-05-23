@@ -8,7 +8,7 @@ public class RegisterPageController {
 
     @GetMapping("/auth/register")
     public String register() {
-        return "Register";
+        return "register";
     }
 
 }
