@@ -8,7 +8,7 @@ public class DriverPageController {
 
     @GetMapping("/driver")
     public String driverPage() {
-        return "driver";
+        return "driver/driver";
     }
 
 }
