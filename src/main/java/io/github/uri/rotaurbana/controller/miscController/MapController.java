@@ -8,12 +8,12 @@ public class MapController {
 
     @GetMapping("/map")
     public String mapRender(){
-        return "map";
+        return "map/map";
     }
 
     @GetMapping("/sendLocation")
     public String sendLocation(){
-        return "LocationSharing";
+        return "location-sharing/location-sharing";
     }
 
 }

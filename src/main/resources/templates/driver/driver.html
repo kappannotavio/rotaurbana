@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motorista - Rota Urbana</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/driver/driver.css" />
+</head>
+<body>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="mb-1">Painel do Motorista</h3>
+            <small class="text-muted-custom" id="driverInfo">Carregando...</small>
+        </div>
+        <a href="/auth/login" class="btn btn-outline-danger btn-sm">Sair</a>
+    </div>
+
+    <div id="loadingView" class="loading">
+        <div class="spinner"></div>
+        <p>Carregando seus ônibus...</p>
+    </div>
+
+    <div id="busesView" style="display:none;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Meus Ônibus</h5>
+        </div>
+        <div id="busesList" class="row g-3"></div>
+    </div>
+
+    <div id="routesView" style="display:none;" class="mt-4">
+        <div class="d-flex align-items-center mb-3">
+            <button class="btn btn-sm btn-outline-secondary me-2" onclick="backToBuses()">← Voltar</button>
+            <h5 class="mb-0">Rotas - <span id="selectedBusName"></span></h5>
+        </div>
+        <div id="routesList" class="row g-3"></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/driver/driver.js"></script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rota ao Vivo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" />
+    <link rel="stylesheet" href="/css/passenger/passenger-map.css" />
+</head>
+<body>
+
+<div class="top-bar">
+    <a href="/passenger" class="btn-back"><i class="bi bi-arrow-left"></i></a>
+    <div class="route-title">
+        <h5 id="routeTitle" th:text="${routeTitle}">Carregando...</h5>
+        <small id="routeSubtitle" th:text="${routeSubtitle}"></small>
+    </div>
+    <span class="badge bg-teal text-uppercase" style="font-size:0.65rem; padding:5px 10px; background:var(--primary-teal); color:#000; letter-spacing:1px;">Ao Vivo</span>
+</div>
+
+<div class="info-bar">
+    <div class="info-chip"><div class="label">Embarque</div><div class="value text-teal" id="chipEmbarque" th:text="${departurePoint != null ? departurePoint : '--'}">--</div></div>
+    <div class="info-chip"><div class="label">Desembarque</div><div class="value text-orange" id="chipDesembarque" th:text="${destiny != null ? destiny : '--'}">--</div></div>
+    <div class="info-chip"><div class="label">Saida</div><div class="value" id="chipSaida" th:text="${departureTime != null ? departureTime : '--'}">--</div></div>
+    <div class="info-chip"><div class="label">Previsao</div><div class="value" id="chipDuracao" th:text="${estimatedDuration != null ? estimatedDuration : '--'}">--</div></div>
+</div>
+
+<div id="mapid"></div>
+
+<div class="overlay" id="mapOverlay">
+    <p id="overlayMessage">Aguardando motorista...</p>
+    <small>O mapa atualiza automaticamente</small>
+    <button onclick="document.getElementById('mapOverlay').style.display='none'" style="margin-top:12px;background:transparent;border:1px solid #555;color:#aaa;border-radius:8px;padding:6px 20px;font-size:0.8rem;cursor:pointer;">Fechar</button>
+</div>
+
+<div id="statusBar">Conectando...</div>
+<button id="btnFollow" class="active" title="Seguir onibus">&#9679;</button>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+
+<script th:inline="javascript">
+    var depLat = /*[[${departureLatitude}]]*/ null;
+    var depLng = /*[[${departureLongitude}]]*/ null;
+    var destLat = /*[[${destinationLatitude}]]*/ null;
+    var destLng = /*[[${destinationLongitude}]]*/ null;
+</script>
+<script src="/js/passenger/passenger-map.js"></script>
+</body>
+</html>

@@ -8,7 +8,7 @@ public class LoginScreenController {
 
     @GetMapping("/auth/login")
     public String login(){
-        return "login";
+        return "auth/login";
     }
 
 }

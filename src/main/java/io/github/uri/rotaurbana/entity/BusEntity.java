@@ -1,11 +1,9 @@
 package io.github.uri.rotaurbana.entity;
 
 import jakarta.persistence.*;
-import jakarta.persistence.GenerationType;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 

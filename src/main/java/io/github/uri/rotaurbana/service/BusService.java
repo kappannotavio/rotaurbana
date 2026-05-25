@@ -4,7 +4,6 @@ import io.github.uri.rotaurbana.dto.request.BusRequestDTO;
 import io.github.uri.rotaurbana.entity.BusEntity;
 import io.github.uri.rotaurbana.entity.DriverEntity;
 import io.github.uri.rotaurbana.repository.BusRepository;
-import io.github.uri.rotaurbana.repository.DriverRepository;
 import io.github.uri.rotaurbana.repository.RoutesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,9 +22,6 @@ public class BusService {
 
     @Autowired
     private RoutesRepository routesRepository;
-
-    @Autowired
-    private DriverRepository driverRepository;
 
     public BusEntity registerBus(BusRequestDTO dto, DriverEntity driver) {
         if (busRepository.findBySign(dto.sign()) != null)

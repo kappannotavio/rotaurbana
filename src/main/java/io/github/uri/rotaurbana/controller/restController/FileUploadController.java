@@ -1,22 +1,20 @@
 package io.github.uri.rotaurbana.controller.restController;
 
+import io.github.uri.rotaurbana.service.FileUploadService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.Map;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/upload")
 public class FileUploadController {
+
+    @Autowired
+    private FileUploadService fileUploadService;
 
     @PostMapping("/image")
     public ResponseEntity<Map<String, Object>> uploadImage(@RequestParam("file") MultipartFile file) {
@@ -25,32 +23,11 @@ public class FileUploadController {
         }
 
         try {
-            String originalName = file.getOriginalFilename();
-            String extension = "";
-            if (originalName != null && originalName.contains(".")) {
-                extension = originalName.substring(originalName.lastIndexOf("."));
-            }
-            String fileName = UUID.randomUUID().toString() + extension;
-
-            Path[] dirs = {
-                Paths.get("src/main/resources/static/images/profiles"),
-                Paths.get("target/classes/static/images/profiles")
-            };
-
-            for (Path dir : dirs) {
-                Files.createDirectories(dir);
-                try (InputStream is = file.getInputStream()) {
-                    Files.copy(is, dir.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
-                }
-            }
-
-            String imageUrl = "/images/profiles/" + fileName;
-
+            String imageUrl = fileUploadService.uploadImage(file);
             return ResponseEntity.ok(Map.of("imageUrl", imageUrl));
-        } catch (IOException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Erro ao salvar imagem: " + e.getMessage()));
         }
     }
-
 }
