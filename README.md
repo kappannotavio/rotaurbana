@@ -28,7 +28,7 @@ Este sistema foi desenvolvido como parte da disciplina de **Projeto Integrador**
 ## ✨ Funcionalidades
 
 ### 👤 Passageiro
-- Inscrever-se em ônibus (por placa ou código) e rotas
+- Inscrever-se em ônibus (por código) e rotas
 - Visualizar localização do ônibus/rota em mapa interativo
 - Confirmar presença diária (vai e volta, só vai, só volta, não vai)
 - Acompanhar status de pagamento
@@ -214,10 +214,6 @@ O rastreamento é feito **in-memory** usando um `ConcurrentHashMap`:
 - JWT com algoritmo **HMAC256** e expiração de **2 horas**
 - O token é enviado via header `Authorization: Bearer <token>` ou cookie `token`
 - `SecurityFilter` intercepta requisições e valida o JWT antes de cada rota protegida
-
-## 🤝 Contribuição
-
-Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou enviar pull requests.
 
 ## 📄 Licença
 
