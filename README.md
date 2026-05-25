@@ -215,6 +215,3 @@ O rastreamento é feito **in-memory** usando um `ConcurrentHashMap`:
 - O token é enviado via header `Authorization: Bearer <token>` ou cookie `token`
 - `SecurityFilter` intercepta requisições e valida o JWT antes de cada rota protegida
 
-## 📄 Licença
-
-Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
