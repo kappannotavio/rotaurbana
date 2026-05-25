@@ -1,122 +1,3 @@
-<!DOCTYPE html>
-<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rota ao Vivo</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" />
-    <style>
-        :root {
-            --bg-main: #111116;
-            --bg-card: #18181e;
-            --primary-orange: #ff5722;
-            --primary-teal: #00d28a;
-            --text-muted: #8e8e9e;
-        }
-        html, body {
-            margin: 0; padding: 0;
-            height: 100%; overflow: hidden;
-            background-color: var(--bg-main);
-            color: #fff;
-            font-family: Arial, sans-serif;
-        }
-        .top-bar {
-            display: flex; align-items: center; gap: 12px;
-            padding: 12px 16px;
-            background-color: var(--bg-card);
-            height: 56px;
-        }
-        .btn-back {
-            width: 36px; height: 36px; flex-shrink: 0;
-            border-radius: 8px;
-            background-color: var(--bg-main);
-            border: 1px solid #333;
-            color: #fff;
-            display: flex; align-items: center; justify-content: center;
-            text-decoration: none; font-size: 1.2rem;
-        }
-        .route-title { flex: 1; min-width: 0; }
-        .route-title h5 { font-weight: 700; margin: 0; font-size: 1rem; }
-        .route-title small { font-size: 0.75rem; color: var(--text-muted); }
-        .info-bar {
-            display: flex; gap: 6px; padding: 8px 12px;
-            background-color: var(--bg-main);
-            overflow-x: auto; height: 52px;
-        }
-        .info-chip {
-            background-color: var(--bg-card);
-            border-radius: 8px; padding: 5px 12px;
-            white-space: nowrap; flex-shrink: 0;
-        }
-        .info-chip .label { font-size: 0.55rem; letter-spacing: 1px; color: #555566; text-transform: uppercase; }
-        .info-chip .value { font-size: 0.8rem; font-weight: 600; }
-        .text-teal { color: var(--primary-teal); }
-        .text-orange { color: var(--primary-orange); }
-        #mapid {
-            position: absolute; top: 108px; left: 0; right: 0; bottom: 0;
-        }
-        .overlay {
-            position: absolute; top: 108px; left: 0; right: 0; bottom: 0;
-            background: rgba(17, 17, 22, 0.92);
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            z-index: 1000;
-            color: var(--text-muted); text-align: center;
-            padding: 30px; gap: 10px;
-        }
-        .overlay p { font-size: 1rem; margin: 0; }
-        .overlay small { font-size: 0.8rem; opacity: 0.7; }
-        #statusBar {
-            position: absolute; bottom: 0; left: 0; right: 0;
-            background: var(--bg-card); padding: 4px 12px;
-            font-size: 0.7rem; color: var(--text-muted);
-            text-align: center; z-index: 1001;
-            height: 22px;
-        }
-        #btnFollow {
-            position: absolute; bottom: 28px; right: 12px; z-index: 1002;
-            width: 36px; height: 36px; border-radius: 8px;
-            background: var(--bg-card); border: 1px solid #333;
-            color: #fff; font-size: 1rem; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            opacity: 0.8;
-        }
-        #btnFollow.active { background: var(--primary-teal); color: #000; border-color: var(--primary-teal); }
-    </style>
-</head>
-<body>
-
-<div class="top-bar">
-    <a href="/passenger" class="btn-back"><i class="bi bi-arrow-left"></i></a>
-    <div class="route-title">
-        <h5 id="routeTitle" th:text="${routeTitle}">Carregando...</h5>
-        <small id="routeSubtitle" th:text="${routeSubtitle}"></small>
-    </div>
-    <span class="badge bg-teal text-uppercase" style="font-size:0.65rem; padding:5px 10px; background:var(--primary-teal); color:#000; letter-spacing:1px;">Ao Vivo</span>
-</div>
-
-<div class="info-bar">
-    <div class="info-chip"><div class="label">Embarque</div><div class="value text-teal" id="chipEmbarque" th:text="${departurePoint != null ? departurePoint : '--'}">--</div></div>
-    <div class="info-chip"><div class="label">Desembarque</div><div class="value text-orange" id="chipDesembarque" th:text="${destiny != null ? destiny : '--'}">--</div></div>
-    <div class="info-chip"><div class="label">Saida</div><div class="value" id="chipSaida" th:text="${departureTime != null ? departureTime : '--'}">--</div></div>
-    <div class="info-chip"><div class="label">Previsao</div><div class="value" id="chipDuracao" th:text="${estimatedDuration != null ? estimatedDuration : '--'}">--</div></div>
-</div>
-
-<div id="mapid"></div>
-
-<div class="overlay" id="mapOverlay">
-    <p id="overlayMessage">Aguardando motorista...</p>
-    <small>O mapa atualiza automaticamente</small>
-    <button onclick="document.getElementById('mapOverlay').style.display='none'" style="margin-top:12px;background:transparent;border:1px solid #555;color:#aaa;border-radius:8px;padding:6px 20px;font-size:0.8rem;cursor:pointer;">Fechar</button>
-</div>
-
-<div id="statusBar">Conectando...</div>
-<button id="btnFollow" class="active" title="Seguir onibus">&#9679;</button>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
-<script th:inline="javascript">
 (function() {
     var token, userId;
     try {
@@ -126,11 +7,6 @@
     if (!token || !userId) { window.location.href = '/auth/login'; return; }
 
     var routeId = new URLSearchParams(window.location.search).get('routeId');
-
-    var depLat = /*[[${departureLatitude}]]*/ null;
-    var depLng = /*[[${departureLongitude}]]*/ null;
-    var destLat = /*[[${destinationLatitude}]]*/ null;
-    var destLng = /*[[${destinationLongitude}]]*/ null;
 
     var map = null, routeLine = null, busMarker = null;
     var lastUpdate = 0;
@@ -281,6 +157,3 @@
         }
     });
 })();
-</script>
-</body>
-</html>

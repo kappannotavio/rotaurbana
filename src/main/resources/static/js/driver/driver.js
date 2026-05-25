@@ -1,61 +1,3 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Motorista - Rota Urbana</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        :root { --bg-main: #111116; --bg-card: #18181e; --primary-orange: #ff5722; --text-muted: #8e8e9e; }
-        body { background-color: var(--bg-main); color: #fff; font-family: 'Inter', sans-serif; min-height: 100vh; }
-        .card-custom { background-color: var(--bg-card); border-radius: 16px; padding: 30px; border: none; }
-        .btn-orange { background-color: var(--primary-orange); border: none; border-radius: 12px; padding: 12px 24px; font-weight: 600; color: #fff; }
-        .btn-orange:hover { background-color: #e64a19; color: #fff; }
-        .btn-outline-custom { border: 1px solid #333; border-radius: 12px; padding: 12px 24px; color: var(--text-muted); }
-        .text-muted-custom { color: var(--text-muted); }
-        .bus-card { background: #1e1e24; border-radius: 12px; padding: 16px; border: 1px solid #2a2a32; cursor: pointer; transition: all 0.2s; }
-        .bus-card:hover { border-color: var(--primary-orange); }
-        .bus-card.selected { border-color: var(--primary-orange); box-shadow: 0 0 12px rgba(255,87,34,0.3); }
-        .loading { text-align: center; padding: 40px; color: var(--text-muted); }
-        .spinner { width: 40px; height: 40px; border: 4px solid #333; border-top-color: var(--primary-orange); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-    </style>
-</head>
-<body>
-
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 class="mb-1">Painel do Motorista</h3>
-            <small class="text-muted-custom" id="driverInfo">Carregando...</small>
-        </div>
-        <a href="/auth/login" class="btn btn-outline-danger btn-sm">Sair</a>
-    </div>
-
-    <div id="loadingView" class="loading">
-        <div class="spinner"></div>
-        <p>Carregando seus ônibus...</p>
-    </div>
-
-    <div id="busesView" style="display:none;">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">Meus Ônibus</h5>
-        </div>
-        <div id="busesList" class="row g-3"></div>
-    </div>
-
-    <div id="routesView" style="display:none;" class="mt-4">
-        <div class="d-flex align-items-center mb-3">
-            <button class="btn btn-sm btn-outline-secondary me-2" onclick="backToBuses()">← Voltar</button>
-            <h5 class="mb-0">Rotas - <span id="selectedBusName"></span></h5>
-        </div>
-        <div id="routesList" class="row g-3"></div>
-    </div>
-</div>
-
-<script>
 function getCookie(name) {
     const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
     return match ? match[2] : null;
@@ -179,7 +121,3 @@ function startTracking(busId, routeId) {
 }
 
 loadBuses();
-</script>
-
-</body>
-</html>

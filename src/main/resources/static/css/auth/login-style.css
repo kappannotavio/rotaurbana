@@ -22,13 +22,12 @@ html, body {
 
 .wrapper {
   position: relative;
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   padding: 20px;
 }
-
 
 .hero {
   position: absolute;
@@ -36,7 +35,7 @@ html, body {
 }
 
 .hero__img {
-  background-image: url('../images/bus.jpeg');
+  background-image: url('../../images/system/onibus.jpeg');
   background-size: cover;
   background-position: center;
   width: 100%;
@@ -256,6 +255,17 @@ html, body {
   letter-spacing: .08em;
 }
 
+.link-forgot {
+  font-size: .78rem;
+  color: var(--orange);
+  text-decoration: none;
+  align-self: flex-end;
+  margin-top: 4px;
+  transition: opacity .15s;
+}
+
+.link-forgot:hover { opacity: .75; }
+
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -278,8 +288,5 @@ html, body {
     max-width: 400px;
     padding: 36px 28px;
     border-radius: 20px;
-  }
-  .field__row {
-    flex-direction: column;
   }
 }

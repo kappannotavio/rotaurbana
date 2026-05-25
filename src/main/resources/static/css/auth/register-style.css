@@ -22,12 +22,13 @@ html, body {
 
 .wrapper {
   position: relative;
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   padding: 20px;
 }
+
 
 .hero {
   position: absolute;
@@ -35,7 +36,7 @@ html, body {
 }
 
 .hero__img {
-  background-image: url('../images/bus.jpeg');
+  background-image: url('../../images/system/onibus.jpeg');
   background-size: cover;
   background-position: center;
   width: 100%;
@@ -255,20 +256,45 @@ html, body {
   letter-spacing: .08em;
 }
 
-.link-forgot {
-  font-size: .78rem;
-  color: var(--orange);
-  text-decoration: none;
-  align-self: flex-end;
-  margin-top: 4px;
-  transition: opacity .15s;
-}
-
-.link-forgot:hover { opacity: .75; }
-
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+.image-preview {
+    display: none;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #FF5C1A;
+}
+
+.file-upload-btn {
+    cursor: pointer;
+    background: var(--input-bg);
+    border: 1px dashed var(--input-border);
+    border-radius: 12px;
+    padding: 15px 20px;
+    text-align: center;
+    flex: 1;
+    color: var(--text-muted);
+    transition: all 0.2s;
+}
+
+.file-upload-btn:hover {
+    border-color: var(--orange);
+    color: var(--orange);
+}
+
+.file-upload-icon {
+    font-size: 1.5rem;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.file-upload-text {
+    font-size: 0.85rem;
 }
 
 @media (max-width: 767.98px) {
@@ -288,5 +314,8 @@ html, body {
     max-width: 400px;
     padding: 36px 28px;
     border-radius: 20px;
+  }
+  .field__row {
+    flex-direction: column;
   }
 }
