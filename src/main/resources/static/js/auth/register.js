@@ -40,8 +40,9 @@ document.getElementById("registerForm").addEventListener("submit", async functio
                 fullName: document.getElementById("fullName").value,
                 adress: document.getElementById("adress").value,
                 city: document.getElementById("city").value,
-                email: document.getElementById("email").value,
+                email: document.getElementById("email").value.toLowerCase().trim(),
                 password: password,
+                confirmPassword: confirm,
                 birthDate: document.getElementById("birthDate").value,
                 userImageUrl: userImageUrl
             })

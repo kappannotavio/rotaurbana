@@ -10,10 +10,12 @@ import io.github.uri.rotaurbana.enums.Role;
 import io.github.uri.rotaurbana.repository.DriverRepository;
 import io.github.uri.rotaurbana.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
@@ -31,6 +33,9 @@ public class LoginService {
 
     @Autowired
     private DriverRepository driverRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public LoginResponseDTO login(AuthResponseDTO authResponseDTO) {
         var usernamePassword = new UsernamePasswordAuthenticationToken(authResponseDTO.email(), authResponseDTO.password());
@@ -56,14 +61,19 @@ public class LoginService {
     }
 
     public boolean register(RegisterRequestDTO registerRequestDTO) {
-        if (this.userRepository.findByEmail(registerRequestDTO.email()) != null) return false;
+        String email = registerRequestDTO.email().toLowerCase().trim();
 
-        String encryptedPassword = new BCryptPasswordEncoder().encode(registerRequestDTO.password());
+        if (!registerRequestDTO.password().equals(registerRequestDTO.confirmPassword()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Senhas não conferem");
+
+        if (this.userRepository.findByEmail(email) != null) return false;
+
+        String encryptedPassword = passwordEncoder.encode(registerRequestDTO.password());
         UserEntity user = new UserEntity(
                 registerRequestDTO.fullName(),
                 registerRequestDTO.adress(),
                 registerRequestDTO.city(),
-                registerRequestDTO.email(),
+                email,
                 encryptedPassword,
                 registerRequestDTO.birthDate(),
                 registerRequestDTO.userImageUrl());
