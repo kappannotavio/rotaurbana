@@ -5,6 +5,7 @@ import io.github.uri.rotaurbana.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
@@ -23,6 +24,7 @@ public class PassengerService {
     @Autowired
     private PresenceRepository presenceRepository;
 
+    @Transactional
     public Map<String, Object> subscribeByBus(UserEntity user, String sign) {
         if (sign == null || sign.isBlank())
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Placa é obrigatória");
@@ -46,6 +48,7 @@ public class PassengerService {
         return response;
     }
 
+    @Transactional
     public Map<String, Object> subscribeByCode(UserEntity user, String code) {
         if (code == null || code.isBlank())
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Código é obrigatório");
@@ -69,6 +72,7 @@ public class PassengerService {
         return response;
     }
 
+    @Transactional
     public Map<String, Object> subscribeByRoute(UserEntity user, String code) {
         if (code == null || code.isBlank())
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Código é obrigatório");
@@ -158,6 +162,7 @@ public class PassengerService {
         return result;
     }
 
+    @Transactional
     public Map<String, Object> confirmPresence(UserEntity user, Long routeId, String presenceType) {
         if (routeId == null || presenceType == null || presenceType.isBlank())
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "routeId e presenceType são obrigatórios");
@@ -191,6 +196,7 @@ public class PassengerService {
         return response;
     }
 
+    @Transactional
     public void unsubscribeRoute(UserEntity user, Long routeId) {
         RoutesEntity route = routesRepository.findById(routeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Rota não encontrada"));

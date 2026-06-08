@@ -8,8 +8,8 @@ import io.github.uri.rotaurbana.repository.*;
 import io.github.uri.rotaurbana.service.BusService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
@@ -38,6 +38,9 @@ public class AdminService {
 
     @Autowired
     private PresenceRepository presenceRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public void validateAdmin(UserEntity admin, Long adminId) {
         if (admin.getRole() != Role.ADMIN)
@@ -182,7 +185,7 @@ public class AdminService {
         if (userRepository.findByEmail(email) != null)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "E-mail já cadastrado");
 
-        UserEntity user = new UserEntity(fullName, adress, city, email, new BCryptPasswordEncoder().encode(password), LocalDate.now(), "");
+        UserEntity user = new UserEntity(fullName, adress, city, email, passwordEncoder.encode(password), null, "");
         user.setRole(Role.DRIVER);
         userRepository.save(user);
 
