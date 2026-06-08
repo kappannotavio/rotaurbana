@@ -6,6 +6,7 @@ import io.github.uri.rotaurbana.enums.PaymentStatus;
 import io.github.uri.rotaurbana.enums.Role;
 import io.github.uri.rotaurbana.repository.*;
 import io.github.uri.rotaurbana.service.BusService;
+import io.github.uri.rotaurbana.service.LogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -41,6 +42,9 @@ public class AdminService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private LogService logService;
 
     public void validateAdmin(UserEntity admin, Long adminId) {
         if (admin.getRole() != Role.ADMIN)
@@ -147,7 +151,12 @@ public class AdminService {
         route.setDepartureTime(LocalTime.parse(departureTime, DateTimeFormatter.ofPattern("HH:mm")));
         route.setDestinationTime(LocalTime.parse(destinationTime, DateTimeFormatter.ofPattern("HH:mm")));
         route.setCode(busService.generateUniqueRouteCode());
-        return routesRepository.save(route);
+        RoutesEntity saved = routesRepository.save(route);
+
+        logService.log("CRIADO", "ROTA", saved.getIdRoute(),
+                "Rota criada: " + departurePoint + " → " + destiny + " (código " + saved.getCode() + ")");
+
+        return saved;
     }
 
     public List<Map<String, Object>> listDrivers() {
@@ -169,6 +178,9 @@ public class AdminService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Motorista não encontrado"));
 
         busService.registerBus(dto, driver);
+
+        logService.log("CRIADO", "ONIBUS", null,
+                "Ônibus cadastrado - placa " + dto.sign() + " (" + dto.brand() + " " + dto.model() + ")");
     }
 
     public void createDriver(Map<String, String> body) {
@@ -182,6 +194,8 @@ public class AdminService {
         if (fullName == null || email == null || password == null || licence == null || adress == null || city == null)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Todos os campos são obrigatórios");
 
+        email = email.toLowerCase().trim();
+
         if (userRepository.findByEmail(email) != null)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "E-mail já cadastrado");
 
@@ -193,6 +207,9 @@ public class AdminService {
         driver.setUser(user);
         driver.setLicence(licence);
         driverRepository.save(driver);
+
+        logService.log("CRIADO", "MOTORISTA", user.getId(),
+                "Motorista criado: " + fullName + " (" + email + ")");
     }
 
     public Map<String, Object> getRouteDetails(Long routeId) {
@@ -301,6 +318,136 @@ public class AdminService {
 
             user.setPaymentStatus(PaymentStatus.valueOf(statusStr));
             userRepository.save(user);
+
+            logService.log("ATUALIZADO", "PAGAMENTO", user.getId(),
+                    "Pagamento de " + user.getFullName() + " alterado para " + statusStr);
         }
+    }
+
+    public List<Map<String, Object>> listUsers() {
+        return userRepository.findAll().stream().map(u -> {
+            Map<String, Object> m = new HashMap<>();
+            m.put("id", u.getId());
+            m.put("fullName", u.getFullName());
+            m.put("email", u.getEmail());
+            m.put("role", u.getRole().name());
+            m.put("adress", u.getAdress());
+            m.put("city", u.getCity());
+            m.put("paymentStatus", u.getPaymentStatus() != null ? u.getPaymentStatus().name() : null);
+            m.put("userImageUrl", u.getUserImageUrl());
+
+            int routeCount = 0;
+            for (RoutesEntity r : routesRepository.findAll()) {
+                if (r.getPassengers().stream().anyMatch(p -> p.getId().equals(u.getId()))) {
+                    routeCount++;
+                }
+            }
+            m.put("routeCount", routeCount);
+            return m;
+        }).collect(Collectors.toList());
+    }
+
+    public List<Map<String, Object>> searchUsers(String query) {
+        String lower = query.toLowerCase();
+        return userRepository.findAll().stream()
+                .filter(u -> u.getFullName().toLowerCase().contains(lower)
+                        || u.getEmail().toLowerCase().contains(lower))
+                .map(u -> {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("id", u.getId());
+                    m.put("fullName", u.getFullName());
+                    m.put("email", u.getEmail());
+                    m.put("role", u.getRole().name());
+                    m.put("adress", u.getAdress());
+                    m.put("city", u.getCity());
+                    m.put("paymentStatus", u.getPaymentStatus() != null ? u.getPaymentStatus().name() : null);
+                    m.put("userImageUrl", u.getUserImageUrl());
+                    return m;
+                }).collect(Collectors.toList());
+    }
+
+    public Map<String, Object> getUserDetails(Long userId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", user.getId());
+        response.put("fullName", user.getFullName());
+        response.put("email", user.getEmail());
+        response.put("role", user.getRole().name());
+        response.put("adress", user.getAdress());
+        response.put("city", user.getCity());
+        response.put("birthDate", user.getBirthDate() != null ? user.getBirthDate().toString() : null);
+        response.put("paymentStatus", user.getPaymentStatus() != null ? user.getPaymentStatus().name() : null);
+        response.put("userImageUrl", user.getUserImageUrl());
+
+        List<Map<String, Object>> routes = new ArrayList<>();
+        for (RoutesEntity r : routesRepository.findAll()) {
+            if (r.getPassengers().stream().anyMatch(p -> p.getId().equals(user.getId()))) {
+                Map<String, Object> rm = new HashMap<>();
+                rm.put("idRoute", r.getIdRoute());
+                rm.put("destiny", r.getDestiny());
+                rm.put("departurePoint", r.getDeparturePoint());
+                rm.put("code", r.getCode());
+                rm.put("departureTime", r.getDepartureTime() != null ? r.getDepartureTime().toString() : null);
+                rm.put("busSign", r.getBus() != null ? r.getBus().getSign() : null);
+                routes.add(rm);
+            }
+        }
+        response.put("routes", routes);
+
+        return response;
+    }
+
+    public void updateUser(Long userId, Map<String, Object> body) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+
+        if (body.containsKey("fullName")) {
+            user.setFullName((String) body.get("fullName"));
+        }
+        if (body.containsKey("adress")) {
+            user.setAdress((String) body.get("adress"));
+        }
+        if (body.containsKey("city")) {
+            user.setCity((String) body.get("city"));
+        }
+        if (body.containsKey("paymentStatus")) {
+            String ps = (String) body.get("paymentStatus");
+            user.setPaymentStatus(PaymentStatus.valueOf(ps));
+        }
+
+        userRepository.save(user);
+
+        logService.log("ATUALIZOU", "USUARIO", userId,
+                "Admin atualizou dados de " + user.getFullName());
+    }
+
+    public void removeUserFromRoute(Long userId, Long routeId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+
+        RoutesEntity route = routesRepository.findById(routeId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Rota não encontrada"));
+
+        boolean removedFromRoute = route.getPassengers().removeIf(p -> p.getId().equals(user.getId()));
+        boolean removedFromBus = false;
+
+        BusEntity bus = route.getBus();
+        if (bus != null) {
+            removedFromBus = bus.getPassengers().removeIf(p -> p.getId().equals(user.getId()));
+        }
+
+        if (!removedFromRoute && !removedFromBus) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuário não está inscrito nesta rota");
+        }
+
+        if (removedFromBus && bus != null) {
+            busRepository.save(bus);
+        }
+        routesRepository.save(route);
+
+        logService.log("REMOVIDO", "ROTA", routeId,
+                user.getFullName() + " removido da rota " + route.getDeparturePoint() + " → " + route.getDestiny());
     }
 }

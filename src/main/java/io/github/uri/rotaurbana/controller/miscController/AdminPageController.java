@@ -31,4 +31,14 @@ public class AdminPageController {
         return "admin/driver-register-admin";
     }
 
+    @GetMapping("/admin/users")
+    public String userManagementPage() {
+        return "admin/user-management-admin";
+    }
+
+    @GetMapping("/admin/logs")
+    public String logsPage() {
+        return "admin/logs-admin";
+    }
+
 }
