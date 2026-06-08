@@ -28,7 +28,7 @@ public class BusEntity {
     @Column(unique = true, length = 6)
     private String code;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "fk_id_driver")
     private DriverEntity driver;
 
