@@ -16,7 +16,7 @@ public class DriverEntity {
 
     private String licence;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne
     @JoinColumn(name = "fk_user_id")
     private UserEntity user;
 }
