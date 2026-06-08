@@ -15,6 +15,9 @@ public class UserService {
     @Autowired
     UserRepository userRepository;
 
+    @Autowired
+    LogService logService;
+
     public UserResponseDTO getUserById(Long id) {
 
         UserEntity loggedUser = (UserEntity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -54,6 +57,9 @@ public class UserService {
         if (userImageUrl != null) user.setUserImageUrl(userImageUrl);
 
         userRepository.save(user);
+
+        logService.log("ATUALIZOU", "USUARIO", user.getId(),
+                "Perfil atualizado por " + loggedUser.getFullName());
 
         return new UserResponseDTO(
                 user.getFullName(),
