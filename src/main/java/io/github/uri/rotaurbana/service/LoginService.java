@@ -37,6 +37,9 @@ public class LoginService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private LogService logService;
+
     public LoginResponseDTO login(AuthResponseDTO authResponseDTO) {
         var usernamePassword = new UsernamePasswordAuthenticationToken(authResponseDTO.email(), authResponseDTO.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
@@ -79,6 +82,9 @@ public class LoginService {
                 registerRequestDTO.userImageUrl());
 
         this.userRepository.save(user);
+
+        logService.log("CRIADO", "USUARIO", user.getId(),
+                "Novo usuário: " + user.getFullName() + " (" + email + ")");
 
         return true;
     }
