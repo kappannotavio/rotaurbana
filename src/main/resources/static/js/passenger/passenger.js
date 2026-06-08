@@ -301,6 +301,13 @@ async function carregarDadosPerfil() {
         const preview = document.getElementById('editImagePreview');
         if (data.userImageUrl && data.userImageUrl !== 'padrao') {
             preview.src = data.userImageUrl;
+            preview.style.display = 'block';
+            preview.style.width = '100px';
+            preview.style.height = '100px';
+            preview.style.borderRadius = '50%';
+            preview.style.objectFit = 'cover';
+            preview.style.border = '3px solid var(--primary-teal)';
+            preview.style.margin = '0 auto';
         } else {
             preview.src = '';
             preview.style.display = 'none';

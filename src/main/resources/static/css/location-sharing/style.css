@@ -1,74 +1,350 @@
-body {
-    background: #121212;
-    color: #e0e0e0;
-    min-height: 100vh;
+:root {
+    --bg-main: #111116;
+    --bg-card: #18181e;
+    --bg-card-hover: #1e1e26;
+    --primary-orange: #ff5722;
+    --primary-teal: #00d28a;
+    --text-muted: #8e8e9e;
+    --border-color: #2a2a32;
+}
+
+.tracking-body {
+    background-color: var(--bg-main);
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+.text-orange { color: var(--primary-orange); }
+.text-teal { color: var(--primary-teal); }
+.text-muted-custom { color: var(--text-muted); }
+
+.btn-back-track {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    background-color: var(--bg-main);
+    border: 1px solid #333;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-size: 1.2rem;
+    transition: all 0.2s;
+}
+
+.btn-back-track:hover {
+    border-color: var(--primary-orange);
+    color: var(--primary-orange);
+}
+
+.tracking-topbar {
+    background-color: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    position: relative;
+    z-index: 1000;
+}
+
+.avatar-box {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #fff;
+}
+
+.status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #555;
+}
+
+.status-dot.active {
+    background: var(--primary-teal);
+    box-shadow: 0 0 8px var(--primary-teal);
+    animation: pulse-green 1.5s infinite;
+}
+
+@keyframes pulse-green {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.9); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.info-bar {
+    background-color: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    position: relative;
+    z-index: 999;
+}
+
+.info-chip {
+    padding: 4px 0;
+}
+
+.chip-label {
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+    color: #555566;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+
+.chip-value {
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.code-text {
+    font-family: monospace;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    color: #fff;
+    background: rgba(0, 210, 138, 0.1);
+    padding: 2px 10px;
+    border-radius: 4px;
+    border: 1px dashed rgba(0, 210, 138, 0.3);
+}
+
+.status-dot-small {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #555;
+    flex-shrink: 0;
+}
+
+.status-dot-small.active {
+    background: var(--primary-teal);
+    box-shadow: 0 0 6px var(--primary-teal);
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.4; }
+    100% { opacity: 1; }
+}
+
+#trackingMap {
+    position: absolute;
+    top: 112px;
+    left: 0;
+    right: 0;
+    bottom: 50px;
+    z-index: 1;
+}
+
+.leaflet-container {
+    background: #1a1a22 !important;
+}
+
+.leaflet-control-attribution {
+    background: rgba(24, 24, 30, 0.95) !important;
+    color: #888 !important;
+    font-size: 0.7rem !important;
+}
+
+.leaflet-control-attribution a {
+    color: #666 !important;
+}
+
+.bottom-status-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--bg-card);
+    border-top: 1px solid var(--border-color);
+    z-index: 1000;
+}
+
+.pulse-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--primary-teal);
+    box-shadow: 0 0 0 rgba(0, 210, 138, 0.4);
+    animation: pulse-ring 1.5s infinite;
+}
+
+@keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(0, 210, 138, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(0, 210, 138, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 210, 138, 0); }
+}
+
+.dropdown-menu-dark {
+    background-color: var(--bg-card);
+    border: 1px solid #333;
+    border-radius: 12px;
+    min-width: 200px;
+}
+
+.dropdown-menu-dark .dropdown-item {
+    color: #ccc;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+}
+
+.dropdown-menu-dark .dropdown-item:hover {
+    background-color: var(--bg-card-hover);
+    color: #fff;
+}
+
+.dropdown-menu-dark .dropdown-divider {
+    border-color: #333;
+}
+
+.offcanvas {
+    background-color: var(--bg-card);
+    color: #fff;
+    border-left: 1px solid #333;
+}
+
+.offcanvas .btn-close { filter: invert(1); }
+
+.offcanvas .form-control {
+    background-color: #22222b;
+    border: 1px solid #444;
+    color: #fff;
+}
+
+.offcanvas .form-control:focus {
+    background-color: #22222b;
+    border-color: var(--primary-orange);
+    color: #fff;
+    box-shadow: none;
+}
+
+.offcanvas label {
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    color: #555566;
+    margin-bottom: 4px;
+}
+
+.image-upload-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    font-family: system-ui, sans-serif;
+    gap: 10px;
 }
-.card {
-    background: #1e1e1e;
-    border: 1px solid #333;
+
+.image-upload-wrapper .upload-btn {
+    background-color: #22222b;
+    border: 1px dashed #555;
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    text-align: center;
+    width: 100%;
+    color: var(--text-muted);
+    transition: all 0.2s;
+}
+
+.image-upload-wrapper .upload-btn:hover {
+    border-color: var(--primary-orange);
+    color: var(--primary-orange);
+}
+
+.btn-iniciar {
+    background-color: var(--primary-orange);
+    color: white;
+    font-weight: 700;
+    letter-spacing: 1px;
+    border-radius: 12px;
+    padding: 12px 16px;
+    transition: background-color 0.2s;
+    border: none;
+}
+
+.btn-iniciar:hover:not(:disabled) {
+    background-color: #e64a19;
+    color: white;
+}
+
+.btn-iniciar:disabled {
+    background-color: #3a3a44;
+    color: #666;
+    cursor: not-allowed;
+}
+
+.fallback-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 2000;
+}
+
+.fallback-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
     border-radius: 16px;
     padding: 2rem;
     width: 100%;
-    max-width: 480px;
+    max-width: 500px;
 }
-.form-control, .form-select {
-    background: #2a2a2a;
+
+.fallback-card .form-control,
+.fallback-card .form-select {
+    background: #22222b;
     border: 1px solid #444;
     color: #e0e0e0;
 }
-.form-control:focus, .form-select:focus {
-    background: #2a2a2a;
+
+.fallback-card .form-control:focus,
+.fallback-card .form-select:focus {
+    background: #22222b;
     color: #e0e0e0;
-    border-color: #0d6efd;
+    border-color: var(--primary-orange);
+    box-shadow: none;
 }
+
 .code-display {
     background: #2a2a2a;
-    border: 2px dashed #00d28a;
+    border: 2px dashed var(--primary-teal);
     border-radius: 12px;
     padding: 1rem;
     text-align: center;
     font-size: 2rem;
     font-weight: bold;
     letter-spacing: 4px;
-    color: #00d28a;
+    color: var(--primary-teal);
     margin: 1rem 0;
 }
-.status {
-    text-align: center;
-    padding: 0.5rem;
-    border-radius: 8px;
-    background: #2a2a2a;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+
+.text-muted-label {
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    color: #555566;
+    text-transform: uppercase;
+    margin-bottom: 6px;
 }
-.status-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #555;
-    flex-shrink: 0;
-}
-.status-dot.active {
-    background: #00d28a;
-    box-shadow: 0 0 6px #00d28a;
-    animation: pulse 1.5s infinite;
-}
-@keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.4; }
-    100% { opacity: 1; }
-}
-.route-info {
-    text-align: center;
-    font-size: 0.9rem;
-    color: #aaa;
-    margin-top: -0.5rem;
-    margin-bottom: 1rem;
+
+@media (max-width: 768px) {
+    #trackingMap {
+        top: 140px;
+    }
+
+    .info-bar .row {
+        row-gap: 12px;
+    }
 }
