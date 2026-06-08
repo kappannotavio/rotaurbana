@@ -49,7 +49,7 @@ public class DriverService {
         BusEntity bus = busRepository.findById(busId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ônibus não encontrado"));
 
-        if (bus.getDriver() == null || !bus.getDriver().getIdDriver().equals(driver.getIdDriver()))
+        if (bus.getDriver() == null || bus.getDriver().getIdDriver() != driver.getIdDriver())
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não é o motorista deste ônibus");
 
         trackingService.updateBusLocation(busId, dto);
@@ -60,7 +60,7 @@ public class DriverService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Rota não encontrada"));
 
         BusEntity bus = route.getBus();
-        if (bus == null || bus.getDriver() == null || !bus.getDriver().getIdDriver().equals(driver.getIdDriver()))
+        if (bus == null || bus.getDriver() == null || bus.getDriver().getIdDriver() != driver.getIdDriver())
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não é o motorista desta rota");
 
         trackingService.updateRouteLocation(routeId, dto);
