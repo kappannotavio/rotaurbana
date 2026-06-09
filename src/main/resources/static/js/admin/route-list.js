@@ -326,7 +326,8 @@ async function carregarDadosPerfil() {
         document.getElementById('editFullName').value = data.fullName || '';
         document.getElementById('editAdress').value = data.adress || '';
         document.getElementById('editCity').value = data.city || '';
-        if (data.birthday) document.getElementById('editBirthDate').value = data.birthday;
+        if (data.birthDate) document.getElementById('editBirthDate').value = data.birthDate;
+        document.getElementById('editBirthDate').setAttribute('max', new Date().toISOString().split('T')[0]);
         var preview = document.getElementById('editImagePreview');
         if (data.userImageUrl && data.userImageUrl !== 'padrao') {
             preview.src = data.userImageUrl;

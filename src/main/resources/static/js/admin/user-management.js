@@ -172,7 +172,8 @@ async function abrirDetalhes(userIdDetalhes) {
 
         renderizarRotasUsuario(data.routes || []);
 
-        var modal = new bootstrap.Modal(document.getElementById('modalUserDetails'));
+        var modalEl = document.getElementById('modalUserDetails');
+        var modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
         modal.show();
     } catch (err) {
         alert("Erro de conexão");
@@ -287,6 +288,7 @@ async function carregarDadosPerfil() {
         document.getElementById("editAdress").value = data.adress || '';
         document.getElementById("editCity").value = data.city || '';
         document.getElementById("editBirthDate").value = data.birthDate || '';
+        document.getElementById("editBirthDate").setAttribute("max", new Date().toISOString().split("T")[0]);
         document.getElementById("editUserImageUrl").value = data.userImageUrl || '';
         if (data.userImageUrl && data.userImageUrl !== "padrao") {
             var preview = document.getElementById("editImagePreview");
