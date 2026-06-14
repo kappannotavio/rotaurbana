@@ -50,26 +50,26 @@ body {
 }
 
 .badge-admin {
-    border: 1px solid var(--purple-admin);
-    color: var(--purple-admin);
-    font-size: 0.7rem;
-    padding: 0.4em 0.8em;
-    border-radius: 6px;
+    background: var(--purple-admin);
+    color: white;
+    font-size: 0.65rem;
     font-weight: 700;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
+    padding: 4px 12px;
+    border-radius: 20px;
 }
 
 .avatar-jg {
-    background-color: var(--purple-admin);
-    color: white;
-    width: 35px;
-    height: 35px;
-    border-radius: 6px;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: var(--bg-card-light);
+    color: var(--accent-orange);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
-    font-size: 0.85rem;
+    font-weight: 800;
+    font-size: 0.8rem;
     cursor: pointer;
 }
 
@@ -259,6 +259,35 @@ body {
     color: var(--text-muted);
     margin-bottom: 4px;
 }
+.modal-blur .modal-content {
+    background-color: var(--bg-card);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+}
+.modal-blur .modal-header { border-color: var(--border-color); }
+.modal-blur .modal-footer { border-color: var(--border-color); }
+.modal-blur .btn-close { filter: invert(1); }
+.modal-blur .form-control, .modal-blur .form-select {
+    background-color: var(--bg-input) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-main) !important;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+}
+.modal-blur .form-control:focus, .modal-blur .form-select:focus {
+    border-color: var(--accent-orange) !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 94, 0, 0.25) !important;
+}
+.modal-blur .form-label {
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
 .upload-btn {
     background-color: var(--bg-input);
     border: 1px dashed var(--border-color);

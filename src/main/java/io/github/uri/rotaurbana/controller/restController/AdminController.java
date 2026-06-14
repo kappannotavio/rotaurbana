@@ -112,12 +112,70 @@ public class AdminController {
 
     @PutMapping("/users/{userId}")
     public ResponseEntity<Map<String, Object>> updateUser(Authentication auth, @PathVariable Long adminId,
-                                                          @PathVariable Long userId,
-                                                          @RequestBody Map<String, Object> body) {
+                                                           @PathVariable Long userId,
+                                                           @RequestBody Map<String, Object> body) {
         UserEntity admin = (UserEntity) auth.getPrincipal();
         adminService.validateAdmin(admin, adminId);
         adminService.updateUser(userId, body);
         return ResponseEntity.ok(Map.of("message", "Usuário atualizado com sucesso"));
+    }
+
+    @PutMapping("/users/{userId}/password")
+    public ResponseEntity<Map<String, Object>> updateUserPassword(Authentication auth, @PathVariable Long adminId,
+                                                                   @PathVariable Long userId,
+                                                                   @RequestBody Map<String, Object> body) {
+        UserEntity admin = (UserEntity) auth.getPrincipal();
+        adminService.validateAdmin(admin, adminId);
+        String newPassword = (String) body.get("password");
+        adminService.updateUserPassword(userId, newPassword);
+        return ResponseEntity.ok(Map.of("message", "Senha alterada com sucesso"));
+    }
+
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<Map<String, Object>> deleteUser(Authentication auth, @PathVariable Long adminId,
+                                                          @PathVariable Long userId) {
+        UserEntity admin = (UserEntity) auth.getPrincipal();
+        adminService.validateAdmin(admin, adminId);
+        adminService.deleteUser(userId);
+        return ResponseEntity.ok(Map.of("message", "Usuário excluído com sucesso"));
+    }
+
+    @PutMapping("/drivers/{driverId}")
+    public ResponseEntity<Map<String, Object>> updateDriver(Authentication auth, @PathVariable Long adminId,
+                                                            @PathVariable Long driverId,
+                                                            @RequestBody Map<String, Object> body) {
+        UserEntity admin = (UserEntity) auth.getPrincipal();
+        adminService.validateAdmin(admin, adminId);
+        adminService.updateDriver(driverId, body);
+        return ResponseEntity.ok(Map.of("message", "Motorista atualizado com sucesso"));
+    }
+
+    @DeleteMapping("/drivers/{driverId}")
+    public ResponseEntity<Map<String, Object>> deleteDriver(Authentication auth, @PathVariable Long adminId,
+                                                            @PathVariable Long driverId) {
+        UserEntity admin = (UserEntity) auth.getPrincipal();
+        adminService.validateAdmin(admin, adminId);
+        adminService.deleteDriver(driverId);
+        return ResponseEntity.ok(Map.of("message", "Motorista excluído com sucesso"));
+    }
+
+    @PutMapping("/buses/{busId}")
+    public ResponseEntity<Map<String, Object>> updateBus(Authentication auth, @PathVariable Long adminId,
+                                                          @PathVariable Long busId,
+                                                          @RequestBody Map<String, Object> body) {
+        UserEntity admin = (UserEntity) auth.getPrincipal();
+        adminService.validateAdmin(admin, adminId);
+        adminService.updateBus(busId, body);
+        return ResponseEntity.ok(Map.of("message", "Ônibus atualizado com sucesso"));
+    }
+
+    @DeleteMapping("/buses/{busId}")
+    public ResponseEntity<Map<String, Object>> deleteBus(Authentication auth, @PathVariable Long adminId,
+                                                          @PathVariable Long busId) {
+        UserEntity admin = (UserEntity) auth.getPrincipal();
+        adminService.validateAdmin(admin, adminId);
+        adminService.deleteBus(busId);
+        return ResponseEntity.ok(Map.of("message", "Ônibus excluído com sucesso"));
     }
 
     @DeleteMapping("/users/{userId}/routes/{routeId}")

@@ -64,6 +64,7 @@ public class AdminService {
             m.put("code", b.getCode());
             m.put("mileage", b.getMileage());
             m.put("busImageUrl", b.getBusImageUrl());
+            m.put("driverId", b.getDriver() != null ? b.getDriver().getIdDriver() : null);
             m.put("driverName", b.getDriver() != null && b.getDriver().getUser() != null
                     ? b.getDriver().getUser().getFullName() : "Sem motorista");
             return m;
@@ -96,16 +97,14 @@ public class AdminService {
 
             Set<UserEntity> routePassengers = r.getPassengers();
             int total = routePassengers.size();
-            int emDay = 0, pending = 0, late = 0;
+            int emDay = 0, pending = 0;
             for (UserEntity p : routePassengers) {
                 if (p.getPaymentStatus() == PaymentStatus.EM_DAY) emDay++;
                 else if (p.getPaymentStatus() == PaymentStatus.PENDING) pending++;
-                else if (p.getPaymentStatus() == PaymentStatus.LATE) late++;
             }
             m.put("totalPassengers", total);
             m.put("emDayCount", emDay);
             m.put("pendingCount", pending);
-            m.put("lateCount", late);
 
             boolean hasDriver = bus != null && bus.getDriver() != null;
             boolean hasPassengers = total > 0;
@@ -166,6 +165,8 @@ public class AdminService {
             m.put("licence", d.getLicence());
             m.put("fullName", d.getUser() != null ? d.getUser().getFullName() : "Sem usuário");
             m.put("email", d.getUser() != null ? d.getUser().getEmail() : "");
+            m.put("adress", d.getUser() != null ? d.getUser().getAdress() : "");
+            m.put("city", d.getUser() != null ? d.getUser().getCity() : "");
             return m;
         }).collect(Collectors.toList());
     }
@@ -266,13 +267,15 @@ public class AdminService {
             presenceMap.put(p.getUser().getId(), p.getPresenceType());
         }
 
-        int emDayCount = 0, pendingCount = 0, lateCount = 0;
+        int emDayCount = 0, pendingCount = 0;
         List<Map<String, Object>> passengerList = new ArrayList<>();
         for (UserEntity p : passengers) {
             Map<String, Object> pm = new HashMap<>();
             pm.put("id", p.getId());
             pm.put("fullName", p.getFullName());
-            pm.put("paymentStatus", p.getPaymentStatus() != null ? p.getPaymentStatus().name() : null);
+            pm.put("role", p.getRole().name());
+            boolean isAdminOrDriver = p.getRole() == Role.ADMIN || p.getRole() == Role.DRIVER;
+            pm.put("paymentStatus", !isAdminOrDriver && p.getPaymentStatus() != null ? p.getPaymentStatus().name() : null);
 
             String pt = presenceMap.get(p.getId());
             pm.put("presenceType", pt);
@@ -287,9 +290,10 @@ public class AdminService {
             }
             pm.put("presenceTypeLabel", label);
 
-            if (p.getPaymentStatus() == PaymentStatus.EM_DAY) emDayCount++;
-            else if (p.getPaymentStatus() == PaymentStatus.PENDING) pendingCount++;
-            else if (p.getPaymentStatus() == PaymentStatus.LATE) lateCount++;
+            if (p.getRole() != Role.ADMIN && p.getRole() != Role.DRIVER) {
+                if (p.getPaymentStatus() == PaymentStatus.EM_DAY) emDayCount++;
+                else if (p.getPaymentStatus() == PaymentStatus.PENDING) pendingCount++;
+            }
 
             passengerList.add(pm);
         }
@@ -299,7 +303,6 @@ public class AdminService {
         stats.put("totalPassengers", passengers.size());
         stats.put("emDayCount", emDayCount);
         stats.put("pendingCount", pendingCount);
-        stats.put("lateCount", lateCount);
         response.put("stats", stats);
 
         return response;
@@ -315,6 +318,9 @@ public class AdminService {
 
             UserEntity user = userRepository.findById(userId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado: " + userId));
+
+            if (!statusStr.equals("EM_DAY") && !statusStr.equals("PENDING"))
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status de pagamento inválido");
 
             user.setPaymentStatus(PaymentStatus.valueOf(statusStr));
             userRepository.save(user);
@@ -333,7 +339,8 @@ public class AdminService {
             m.put("role", u.getRole().name());
             m.put("adress", u.getAdress());
             m.put("city", u.getCity());
-            m.put("paymentStatus", u.getPaymentStatus() != null ? u.getPaymentStatus().name() : null);
+            boolean isAdminOrDriver = u.getRole() == Role.ADMIN || u.getRole() == Role.DRIVER;
+            m.put("paymentStatus", !isAdminOrDriver && u.getPaymentStatus() != null ? u.getPaymentStatus().name() : null);
             m.put("userImageUrl", u.getUserImageUrl());
 
             int routeCount = 0;
@@ -360,7 +367,8 @@ public class AdminService {
                     m.put("role", u.getRole().name());
                     m.put("adress", u.getAdress());
                     m.put("city", u.getCity());
-                    m.put("paymentStatus", u.getPaymentStatus() != null ? u.getPaymentStatus().name() : null);
+                    boolean isAdminOrDriver = u.getRole() == Role.ADMIN || u.getRole() == Role.DRIVER;
+                    m.put("paymentStatus", !isAdminOrDriver && u.getPaymentStatus() != null ? u.getPaymentStatus().name() : null);
                     m.put("userImageUrl", u.getUserImageUrl());
                     return m;
                 }).collect(Collectors.toList());
@@ -378,7 +386,8 @@ public class AdminService {
         response.put("adress", user.getAdress());
         response.put("city", user.getCity());
         response.put("birthDate", user.getBirthDate() != null ? user.getBirthDate().toString() : null);
-        response.put("paymentStatus", user.getPaymentStatus() != null ? user.getPaymentStatus().name() : null);
+        boolean isAdminOrDriver = user.getRole() == Role.ADMIN || user.getRole() == Role.DRIVER;
+        response.put("paymentStatus", !isAdminOrDriver && user.getPaymentStatus() != null ? user.getPaymentStatus().name() : null);
         response.put("userImageUrl", user.getUserImageUrl());
 
         List<Map<String, Object>> routes = new ArrayList<>();
@@ -404,16 +413,27 @@ public class AdminService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
 
         if (body.containsKey("fullName")) {
-            user.setFullName((String) body.get("fullName"));
+            String name = (String) body.get("fullName");
+            if (name == null || name.isBlank())
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nome completo é obrigatório");
+            user.setFullName(name.trim());
         }
         if (body.containsKey("adress")) {
-            user.setAdress((String) body.get("adress"));
+            String adress = (String) body.get("adress");
+            if (adress == null || adress.isBlank())
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Endereço é obrigatório");
+            user.setAdress(adress.trim());
         }
         if (body.containsKey("city")) {
-            user.setCity((String) body.get("city"));
+            String city = (String) body.get("city");
+            if (city == null || city.isBlank())
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cidade é obrigatória");
+            user.setCity(city.trim());
         }
         if (body.containsKey("paymentStatus")) {
             String ps = (String) body.get("paymentStatus");
+            if (ps == null || (!ps.equals("EM_DAY") && !ps.equals("PENDING")))
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status de pagamento inválido");
             user.setPaymentStatus(PaymentStatus.valueOf(ps));
         }
 
@@ -421,6 +441,220 @@ public class AdminService {
 
         logService.log("ATUALIZOU", "USUARIO", userId,
                 "Admin atualizou dados de " + user.getFullName());
+    }
+
+    public void deleteDriver(Long driverId) {
+        DriverEntity driver = driverRepository.findById(driverId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Motorista não encontrado"));
+
+        UserEntity user = driver.getUser();
+
+        List<BusEntity> driverBuses = busRepository.findByDriver(driver);
+        for (BusEntity bus : driverBuses) {
+            bus.setDriver(null);
+            busRepository.save(bus);
+        }
+
+        driverRepository.delete(driver);
+
+        if (user != null) {
+            List<RoutesEntity> allRoutes = routesRepository.findAll();
+            for (RoutesEntity route : allRoutes) {
+                route.getPassengers().removeIf(p -> p.getId().equals(user.getId()));
+                routesRepository.save(route);
+            }
+            List<BusEntity> allBuses = busRepository.findAll();
+            for (BusEntity bus : allBuses) {
+                bus.getPassengers().removeIf(p -> p.getId().equals(user.getId()));
+                busRepository.save(bus);
+            }
+            userRepository.delete(user);
+        }
+
+        logService.log("EXCLUIU", "MOTORISTA", driverId,
+                "Admin excluiu motorista " + (user != null ? user.getFullName() : "desconhecido"));
+    }
+
+    public void updateDriver(Long driverId, Map<String, Object> body) {
+        DriverEntity driver = driverRepository.findById(driverId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Motorista não encontrado"));
+
+        UserEntity user = driver.getUser();
+
+        if (body.containsKey("fullName")) {
+            String name = (String) body.get("fullName");
+            if (name == null || name.isBlank())
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nome completo é obrigatório");
+            user.setFullName(name.trim());
+        }
+        if (body.containsKey("adress")) {
+            String adress = (String) body.get("adress");
+            if (adress == null || adress.isBlank())
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Endereço é obrigatório");
+            user.setAdress(adress.trim());
+        }
+        if (body.containsKey("city")) {
+            String city = (String) body.get("city");
+            if (city == null || city.isBlank())
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cidade é obrigatória");
+            user.setCity(city.trim());
+        }
+        if (body.containsKey("email")) {
+            String email = ((String) body.get("email")).toLowerCase().trim();
+            if (email.isBlank())
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "E-mail é obrigatório");
+            UserEntity existing = userRepository.findByEmail(email);
+            if (existing != null && !existing.getId().equals(user.getId()))
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "E-mail já cadastrado");
+            user.setEmail(email);
+        }
+        if (body.containsKey("licence")) {
+            String licence = (String) body.get("licence");
+            if (licence == null || licence.isBlank())
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CNH é obrigatória");
+            driver.setLicence(licence.trim());
+        }
+
+        userRepository.save(user);
+        driverRepository.save(driver);
+
+        logService.log("ATUALIZOU", "MOTORISTA", driverId,
+                "Admin atualizou dados do motorista " + user.getFullName());
+    }
+
+    public void deleteUser(Long userId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+
+        if (user.getRole() == Role.ADMIN)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não é possível excluir um administrador");
+
+        List<RoutesEntity> allRoutes = routesRepository.findAll();
+        for (RoutesEntity route : allRoutes) {
+            route.getPassengers().removeIf(p -> p.getId().equals(userId));
+            routesRepository.save(route);
+        }
+
+        List<BusEntity> allBuses = busRepository.findAll();
+        for (BusEntity bus : allBuses) {
+            bus.getPassengers().removeIf(p -> p.getId().equals(userId));
+            busRepository.save(bus);
+        }
+
+        if (user.getRole() == Role.DRIVER) {
+            DriverEntity driver = driverRepository.findByUser(user).orElse(null);
+            if (driver != null) {
+                List<BusEntity> driverBuses = busRepository.findByDriver(driver);
+                for (BusEntity bus : driverBuses) {
+                    bus.setDriver(null);
+                    busRepository.save(bus);
+                }
+                driverRepository.delete(driver);
+            }
+        }
+
+        String userName = user.getFullName();
+        userRepository.delete(user);
+
+        logService.log("EXCLUIU", "USUARIO", userId,
+                "Admin excluiu usuário " + userName);
+    }
+
+    public void updateBus(Long busId, Map<String, Object> body) {
+        BusEntity bus = busRepository.findById(busId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ônibus não encontrado"));
+
+        if (body.containsKey("brand")) {
+            String brand = (String) body.get("brand");
+            if (brand == null || brand.isBlank())
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Marca é obrigatória");
+            bus.setBrand(brand.trim());
+        }
+        if (body.containsKey("model")) {
+            String model = (String) body.get("model");
+            if (model == null || model.isBlank())
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Modelo é obrigatório");
+            bus.setModel(model.trim());
+        }
+        if (body.containsKey("color")) {
+            String color = (String) body.get("color");
+            if (color == null || color.isBlank())
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cor é obrigatória");
+            bus.setColor(color.trim());
+        }
+        if (body.containsKey("sign")) {
+            String sign = ((String) body.get("sign")).toUpperCase().trim();
+            if (sign.isBlank())
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Placa é obrigatória");
+            BusEntity existing = busRepository.findBySign(sign);
+            if (existing != null && existing.getIdBus() != busId)
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Placa já cadastrada");
+            bus.setSign(sign);
+        }
+        if (body.containsKey("mileage")) {
+            Object mileageObj = body.get("mileage");
+            double mileage;
+            if (mileageObj instanceof Number) {
+                mileage = ((Number) mileageObj).doubleValue();
+            } else {
+                mileage = Double.parseDouble(mileageObj.toString());
+            }
+            bus.setMileage(mileage);
+        }
+        if (body.containsKey("busImageUrl")) {
+            String imageUrl = (String) body.get("busImageUrl");
+            bus.setBusImageUrl(imageUrl);
+        }
+        if (body.containsKey("driverId")) {
+            Object driverIdObj = body.get("driverId");
+            if (driverIdObj != null) {
+                Long driverId = Long.valueOf(driverIdObj.toString());
+                DriverEntity driver = driverRepository.findById(driverId)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Motorista não encontrado"));
+                bus.setDriver(driver);
+            } else {
+                bus.setDriver(null);
+            }
+        }
+
+        busRepository.save(bus);
+
+        logService.log("ATUALIZOU", "ONIBUS", busId,
+                "Admin atualizou ônibus placa " + bus.getSign());
+    }
+
+    public void deleteBus(Long busId) {
+        BusEntity bus = busRepository.findById(busId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ônibus não encontrado"));
+
+        List<RoutesEntity> routesWithBus = routesRepository.findByBus(bus);
+        if (!routesWithBus.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Ônibus está associado a " + routesWithBus.size() + " rota(s). Remova-o das rotas primeiro.");
+        }
+
+        String busSign = bus.getSign();
+        busRepository.delete(bus);
+
+        logService.log("EXCLUIU", "ONIBUS", busId,
+                "Admin excluiu ônibus placa " + busSign);
+    }
+
+    public void updateUserPassword(Long userId, String newPassword) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+
+        if (newPassword == null || newPassword.isBlank())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Senha é obrigatória");
+
+        if (newPassword.length() < 6)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A senha deve ter no mínimo 6 caracteres");
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        logService.log("ATUALIZOU", "SENHA", userId,
+                "Admin alterou a senha de " + user.getFullName());
     }
 
     public void removeUserFromRoute(Long userId, Long routeId) {

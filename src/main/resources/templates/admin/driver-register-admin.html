@@ -100,6 +100,54 @@
 
 </div>
 
+<!-- Modal Editar Motorista -->
+<div class="modal fade modal-blur" id="modalEditarMotorista" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-fullscreen-md-down modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Editar Motorista</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editDriverForm">
+          <input type="hidden" id="editDriverId">
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">NOME</label>
+              <input type="text" id="editDriverName" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">E-MAIL</label>
+              <input type="email" id="editDriverEmail" class="form-control" required>
+            </div>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">CNH</label>
+              <input type="text" id="editDriverLicence" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">ENDEREÇO</label>
+              <input type="text" id="editDriverAdress" class="form-control" required>
+            </div>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">CIDADE</label>
+              <input type="text" id="editDriverCity" class="form-control" required>
+            </div>
+          </div>
+          <div id="editDriverResult"></div>
+        </form>
+      </div>
+      <div class="modal-footer d-flex justify-content-between">
+        <button class="btn btn-secondary" data-bs-dismiss="modal" style="background:#222;border:none;border-radius:8px;padding:12px 24px;">Cancelar</button>
+        <button type="submit" class="btn btn-submit" id="btnEditDriver" form="editDriverForm">SALVAR ALTERAÇÕES</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Offcanvas Editar Perfil -->
 <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasEditarPerfil">
   <div class="offcanvas-header border-bottom" style="border-color:var(--border-color)!important;">
