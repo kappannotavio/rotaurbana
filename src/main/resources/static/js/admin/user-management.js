@@ -91,9 +91,10 @@ function renderizarUsuarios(users) {
         else roleBadge = '<span class="badge-role-user">USUÁRIO</span>';
 
         var paymentBadge = '';
-        if (u.paymentStatus === 'EM_DAY') paymentBadge = '<span class="badge-pay-ok"><i class="bi bi-check-circle"></i> Em dia</span>';
+        if (u.role === 'ADMIN' || u.role === 'DRIVER') {
+            paymentBadge = '';
+        } else if (u.paymentStatus === 'EM_DAY') paymentBadge = '<span class="badge-pay-ok"><i class="bi bi-check-circle"></i> Em dia</span>';
         else if (u.paymentStatus === 'PENDING') paymentBadge = '<span class="badge-pay-pending"><i class="bi bi-clock"></i> Pendente</span>';
-        else if (u.paymentStatus === 'LATE') paymentBadge = '<span class="badge-pay-late"><i class="bi bi-exclamation-circle"></i> Atrasado</span>';
 
         card.innerHTML =
             '<div class="user-card-avatar">' + avatarHtml + '</div>' +
@@ -156,10 +157,29 @@ async function abrirDetalhes(userIdDetalhes) {
             avatarEl.style.display = 'flex';
         }
 
+        var isAdminOrDriver = data.role === 'ADMIN' || data.role === 'DRIVER';
+
         var paymentBadge = document.getElementById("userDetailPayment");
-        if (data.paymentStatus === 'EM_DAY') paymentBadge.textContent = 'Em dia';
-        else if (data.paymentStatus === 'PENDING') paymentBadge.textContent = 'Pendente';
-        else if (data.paymentStatus === 'LATE') paymentBadge.textContent = 'Atrasado';
+        if (isAdminOrDriver) {
+            paymentBadge.textContent = '---';
+            paymentBadge.style.display = 'none';
+            paymentBadge.className = 'badge-payment';
+        } else {
+            paymentBadge.style.display = 'inline-block';
+            if (data.paymentStatus === 'EM_DAY') {
+                paymentBadge.textContent = 'Em dia';
+                paymentBadge.className = 'badge-pay-ok';
+            } else if (data.paymentStatus === 'PENDING') {
+                paymentBadge.textContent = 'Pendente';
+                paymentBadge.className = 'badge-pay-pending';
+            } else {
+                paymentBadge.textContent = '---';
+                paymentBadge.className = 'badge-payment';
+            }
+        }
+
+        var paymentSection = document.getElementById("editUserPaymentSection");
+        if (paymentSection) paymentSection.style.display = isAdminOrDriver ? 'none' : 'block';
 
         document.getElementById("editUserFullName").value = data.fullName || '';
         document.getElementById("editUserEmail").value = data.email || '';
@@ -167,6 +187,8 @@ async function abrirDetalhes(userIdDetalhes) {
         document.getElementById("editUserCity").value = data.city || '';
         document.getElementById("editUserPaymentStatus").value = data.paymentStatus || 'EM_DAY';
         document.getElementById("editUserResult").innerHTML = '';
+        document.getElementById("editUserPassword").value = '';
+        document.getElementById("editUserPasswordResult").innerHTML = '';
 
         document.getElementById("editUserForm").dataset.userId = userIdDetalhes;
 
@@ -239,10 +261,20 @@ async function salvarUsuario() {
 
     var userIdDetalhes = document.getElementById("editUserForm").dataset.userId;
 
+    var fullName = document.getElementById("editUserFullName").value.trim();
+    var adress = document.getElementById("editUserAdress").value.trim();
+    var city = document.getElementById("editUserCity").value.trim();
+
+    var resultDiv = document.getElementById("editUserResult");
+
+    if (!fullName) { resultDiv.innerHTML = '<div class="result-box error">Nome completo é obrigatório</div>'; btn.disabled = false; btn.innerHTML = originalText; return; }
+    if (!adress) { resultDiv.innerHTML = '<div class="result-box error">Endereço é obrigatório</div>'; btn.disabled = false; btn.innerHTML = originalText; return; }
+    if (!city) { resultDiv.innerHTML = '<div class="result-box error">Cidade é obrigatória</div>'; btn.disabled = false; btn.innerHTML = originalText; return; }
+
     var data = {
-        fullName: document.getElementById("editUserFullName").value,
-        adress: document.getElementById("editUserAdress").value,
-        city: document.getElementById("editUserCity").value,
+        fullName: fullName,
+        adress: adress,
+        city: city,
         paymentStatus: document.getElementById("editUserPaymentStatus").value
     };
 
@@ -256,7 +288,6 @@ async function salvarUsuario() {
             body: JSON.stringify(data)
         });
 
-        var resultDiv = document.getElementById("editUserResult");
         if (res.ok) {
             resultDiv.innerHTML = '<div class="result-box success">Usuário atualizado com sucesso!</div>';
             setTimeout(function() { resultDiv.innerHTML = ''; }, 3000);
@@ -266,10 +297,77 @@ async function salvarUsuario() {
             resultDiv.innerHTML = '<div class="result-box error">Erro: ' + err + '</div>';
         }
     } catch (err) {
-        document.getElementById("editUserResult").innerHTML = '<div class="result-box error">Erro de rede</div>';
+        resultDiv.innerHTML = '<div class="result-box error">Erro de rede</div>';
     } finally {
         btn.disabled = false;
         btn.innerHTML = originalText;
+    }
+}
+
+async function salvarSenha() {
+    var btn = document.getElementById("btnSavePassword");
+    var originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>SALVANDO...';
+
+    var userIdDetalhes = document.getElementById("editUserForm").dataset.userId;
+    var password = document.getElementById("editUserPassword").value;
+    var resultDiv = document.getElementById("editUserPasswordResult");
+
+    if (!password || password.length < 6) {
+        resultDiv.innerHTML = '<div class="result-box error">A senha deve ter no mínimo 6 caracteres</div>';
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        return;
+    }
+
+    try {
+        var res = await fetch("/api/admin/" + userId + "/users/" + userIdDetalhes + "/password", {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ password: password })
+        });
+
+        if (res.ok) {
+            resultDiv.innerHTML = '<div class="result-box success">Senha alterada com sucesso!</div>';
+            document.getElementById("editUserPassword").value = '';
+            setTimeout(function() { resultDiv.innerHTML = ''; }, 3000);
+        } else {
+            var err = await res.text();
+            resultDiv.innerHTML = '<div class="result-box error">Erro: ' + err + '</div>';
+        }
+    } catch (err) {
+        resultDiv.innerHTML = '<div class="result-box error">Erro de rede</div>';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+async function excluirUsuario() {
+    var userIdDetalhes = document.getElementById("editUserForm").dataset.userId;
+    var userName = document.getElementById("userDetailName").textContent;
+    if (!confirm("Tem certeza que deseja excluir o usuário " + userName + "? Esta ação não pode ser desfeita.")) return;
+
+    try {
+        var res = await fetch("/api/admin/" + userId + "/users/" + userIdDetalhes, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+
+        if (res.ok) {
+            var modal = bootstrap.Modal.getInstance(document.getElementById('modalUserDetails'));
+            if (modal) modal.hide();
+            carregarDados();
+        } else {
+            var err = await res.text();
+            alert("Erro: " + err);
+        }
+    } catch (err) {
+        alert("Erro de conexão");
     }
 }
 

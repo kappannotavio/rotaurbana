@@ -6,6 +6,7 @@ function getCookie(name) {
 var token = getCookie("token");
 var userId = getCookie("userId");
 var role = getCookie("role");
+var allDrivers = [];
 
 if (!token || role !== "ADMIN") {
     window.location.href = "/auth/login";
@@ -34,8 +35,8 @@ async function carregarDados() {
         renderizarVeiculos(vehicles);
 
         if (driversRes.ok) {
-            var drivers = await driversRes.json();
-            carregarMotoristas(drivers);
+            allDrivers = await driversRes.json();
+            carregarMotoristas(allDrivers);
         }
 
         if (userRes.ok) {
@@ -90,6 +91,8 @@ function renderizarVeiculos(vehicles) {
     vehicles.forEach(function(v) {
         var card = document.createElement('div');
         card.className = 'vehicle-card shadow-sm';
+        card.style.cursor = 'pointer';
+        card.onclick = function() { abrirEditarVeiculo(v); };
 
         var details = '';
         if (v.brand) details += v.brand;
@@ -103,7 +106,8 @@ function renderizarVeiculos(vehicles) {
                 '<div class="vehicle-details">' + escapeHtml(details) + '</div>' +
                 '<div class="vehicle-driver"><i class="bi bi-person me-1"></i>' + escapeHtml(v.driverName || 'Sem motorista') + '</div>' +
             '</div>' +
-            (v.busImageUrl ? '<img src="' + escapeHtml(v.busImageUrl) + '" alt="Foto" style="width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0;">' : '');
+            (v.busImageUrl ? '<img src="' + escapeHtml(v.busImageUrl) + '" alt="Foto" style="width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0;">' : '') +
+            '<button class="btn btn-sm ms-2" onclick="event.stopPropagation();excluirVeiculo(' + v.idBus + ')" style="color:var(--accent-red);background:rgba(247,90,104,0.15);border:none;border-radius:6px;padding:6px 10px;flex-shrink:0;" title="Excluir veículo"><i class="bi bi-trash"></i></button>';
 
         container.appendChild(card);
     });
@@ -189,6 +193,149 @@ document.getElementById('busImageInput').addEventListener('change', function() {
     preview.style.display = 'block';
     document.getElementById('busImageLabel').textContent = file.name;
 });
+
+function abrirEditarVeiculo(vehicle) {
+    document.getElementById("editBusId").value = vehicle.idBus;
+
+    var driverSelect = document.getElementById("editDriverSelect");
+    driverSelect.innerHTML = '<option value="">Sem motorista</option>';
+    allDrivers.forEach(function(d) {
+        var opt = document.createElement('option');
+        opt.value = d.idDriver;
+        opt.textContent = d.fullName + ' - ' + d.licence + ' (' + d.email + ')';
+        driverSelect.appendChild(opt);
+    });
+
+    if (vehicle.driverId) {
+        driverSelect.value = vehicle.driverId;
+    }
+
+    document.getElementById("editSign").value = vehicle.sign || '';
+    document.getElementById("editBrand").value = vehicle.brand || '';
+    document.getElementById("editModel").value = vehicle.model || '';
+    document.getElementById("editColor").value = vehicle.color || '';
+    document.getElementById("editMileage").value = vehicle.mileage || '';
+
+    var excluirBtn = document.getElementById("btnExcluirVeiculo");
+    excluirBtn.onclick = function() { excluirVeiculo(vehicle.idBus); };
+
+    var preview = document.getElementById("editBusImagePreview");
+    if (vehicle.busImageUrl) {
+        preview.src = vehicle.busImageUrl;
+        preview.style.display = 'block';
+        document.getElementById("editBusImageLabel").textContent = 'Alterar foto';
+    } else {
+        preview.src = '';
+        preview.style.display = 'none';
+        document.getElementById("editBusImageLabel").textContent = 'Clique para escolher foto';
+    }
+    document.getElementById("editBusImageInput").value = '';
+    document.getElementById("editVehicleResult").innerHTML = '';
+
+    var modal = new bootstrap.Modal(document.getElementById('modalEditarVeiculo'));
+    modal.show();
+}
+
+document.getElementById("editBusImageInput").addEventListener('change', function() {
+    var file = this.files[0];
+    if (!file) return;
+    var preview = document.getElementById('editBusImagePreview');
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = 'block';
+    document.getElementById('editBusImageLabel').textContent = file.name;
+});
+
+document.getElementById("editVehicleForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+    var btn = document.getElementById("btnEditVehicle");
+    var originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>SALVANDO...';
+
+    var busId = document.getElementById("editBusId").value;
+    var resultDiv = document.getElementById("editVehicleResult");
+
+    var busImageUrl = '';
+    var fileInput = document.getElementById('editBusImageInput');
+    if (fileInput.files.length > 0) {
+        var formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        var uploadRes = await fetch('/api/upload/image', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token },
+            body: formData
+        });
+        if (uploadRes.ok) {
+            var uploadData = await uploadRes.json();
+            busImageUrl = uploadData.imageUrl;
+        }
+    }
+
+    var data = {
+        brand: document.getElementById("editBrand").value,
+        model: document.getElementById("editModel").value,
+        color: document.getElementById("editColor").value,
+        sign: document.getElementById("editSign").value.toUpperCase(),
+        mileage: parseFloat(document.getElementById("editMileage").value),
+        driverId: parseInt(document.getElementById("editDriverSelect").value) || null
+    };
+    if (busImageUrl) data.busImageUrl = busImageUrl;
+
+    try {
+        var res = await fetch('/api/admin/' + userId + '/buses/' + busId, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+            resultDiv.innerHTML = '<div class="result-box success">Veículo atualizado com sucesso!</div>';
+            setTimeout(function() { resultDiv.innerHTML = ''; }, 2000);
+            var modal = bootstrap.Modal.getInstance(document.getElementById('modalEditarVeiculo'));
+            if (modal) modal.hide();
+            var vehiclesRes = await fetch('/api/admin/' + userId + '/buses', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (vehiclesRes.ok) {
+                renderizarVeiculos(await vehiclesRes.json());
+            }
+        } else {
+            var err = await res.text();
+            resultDiv.innerHTML = '<div class="result-box error">Erro: ' + escapeHtml(err) + '</div>';
+        }
+    } catch (err) {
+        resultDiv.innerHTML = '<div class="result-box error">Erro de rede</div>';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+});
+
+async function excluirVeiculo(busId) {
+    if (!confirm("Tem certeza que deseja excluir este veículo?")) return;
+    try {
+        var res = await fetch('/api/admin/' + userId + '/buses/' + busId, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (res.ok) {
+            var vehiclesRes = await fetch('/api/admin/' + userId + '/buses', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (vehiclesRes.ok) {
+                renderizarVeiculos(await vehiclesRes.json());
+            }
+        } else {
+            var err = await res.text();
+            alert('Erro: ' + err);
+        }
+    } catch (err) {
+        alert('Erro de conexão');
+    }
+}
 
 function escapeHtml(text) {
     if (!text) return '';

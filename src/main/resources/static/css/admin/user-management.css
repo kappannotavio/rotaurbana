@@ -161,9 +161,8 @@ body {
     padding: 2px 8px; border-radius: 4px;
 }
 
-.badge-pay-ok { font-size: 0.62rem; color: var(--accent-green); }
-.badge-pay-pending { font-size: 0.62rem; color: var(--accent-yellow); }
-.badge-pay-late { font-size: 0.62rem; color: var(--accent-red); }
+.badge-pay-ok { font-size: 0.62rem; color: var(--accent-green); border: 1px solid var(--accent-green); background-color: var(--accent-green-bg); padding: 2px 8px; border-radius: 4px; }
+.badge-pay-pending { font-size: 0.62rem; color: var(--accent-yellow); border: 1px solid var(--accent-yellow); background-color: var(--accent-yellow-bg); padding: 2px 8px; border-radius: 4px; }
 
 .user-card-routes {
     text-align: center;

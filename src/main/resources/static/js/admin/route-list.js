@@ -68,19 +68,19 @@ function renderizarRotas(routes) {
 
     var activeRoutes = routes.filter(function(r) { return r.status === 'ativa'; });
     var totalPassengers = 0;
-    var latePayments = 0;
+    var pendingPayments = 0;
 
     routes.forEach(function(r) {
         if (r.status === 'ativa') {
             totalPassengers += r.totalPassengers || 0;
-            latePayments += (r.pendingCount || 0) + (r.lateCount || 0);
+            pendingPayments += r.pendingCount || 0;
         }
     });
 
     document.getElementById('statActiveRoutes').textContent = activeRoutes.length;
     document.getElementById('statActiveDesc').textContent = 'de ' + routes.length + ' cadastradas';
     document.getElementById('statTotalPassengers').textContent = totalPassengers;
-    document.getElementById('statLatePayments').textContent = latePayments;
+    document.getElementById('statLatePayments').textContent = pendingPayments;
 
     var container = document.getElementById('routeList');
     container.innerHTML = '';
@@ -121,8 +121,8 @@ function renderizarRotas(routes) {
                     '<div class="value text-green">' + (r.emDayCount || 0) + '</div>' +
                 '</div>' +
                 '<div class="route-stat-item">' +
-                    '<div class="label">Pag. Atras.</div>' +
-                    '<div class="value text-red">' + ((r.pendingCount || 0) + (r.lateCount || 0)) + '</div>' +
+                    '<div class="label">Pendentes</div>' +
+                    '<div class="value text-red">' + (r.pendingCount || 0) + '</div>' +
                 '</div>' +
                 '<div class="route-stat-item">' +
                     '<div class="label">Horário</div>' +

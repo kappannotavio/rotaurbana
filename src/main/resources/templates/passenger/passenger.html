@@ -15,13 +15,15 @@
 
 <div class="container-fluid py-4 px-md-5">
 
-    <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
-        <div>
+    <header class="d-flex flex-wrap align-items-center mb-5 gap-2 gap-md-3">
+        <div class="text-center text-md-start">
             <h4 class="mb-1 fw-bold">Bem-vindo, <span th:text="${userName}">(Username)</span></h4>
             <small id="currentDate" class="text-muted-custom">Carregando...</small>
         </div>
-        <div class="d-flex align-items-center gap-3">
-            <span id="paymentBadge" class="payment-badge rounded-2 text-uppercase fw-bold" th:text="${paymentStatus}">Pagamento em dia</span>
+        <div class="d-flex align-items-center gap-3 ms-auto">
+            <span id="paymentBadge" class="payment-badge rounded-2 text-uppercase fw-bold"
+                  th:text="${paymentStatus}"
+                  th:classappend="${paymentStatusName == 'PENDING'} ? 'payment-pending' : 'payment-ok'">Pagamento em dia</span>
             <div class="dropdown">
                 <div id="passengerAvatar" class="avatar-box" data-bs-toggle="dropdown" aria-expanded="false"
                      th:style="'background: ' + (${userImageUrl != null && !#strings.isEmpty(userImageUrl) && userImageUrl != 'padrao'} ? 'url(' + ${userImageUrl} + ') center/cover no-repeat' : 'var(--primary-teal)') + ';'"

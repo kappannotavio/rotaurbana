@@ -123,17 +123,29 @@
               <input type="text" class="form-control" id="editUserCity">
             </div>
           </div>
-          <div class="mb-3">
+          <div class="mb-3" id="editUserPaymentSection">
             <label class="form-label">STATUS DE PAGAMENTO</label>
             <select class="form-select" id="editUserPaymentStatus">
               <option value="EM_DAY">Em Dia</option>
               <option value="PENDING">Pendente</option>
-              <option value="LATE">Atrasado</option>
             </select>
           </div>
           <div id="editUserResult"></div>
           <button type="submit" class="btn btn-submit w-100" id="btnSaveUser">SALVAR ALTERAÇÕES</button>
         </form>
+
+        <hr class="my-4" style="border-color:var(--border-color);">
+
+        <div class="section-header">
+          <h2 class="section-title">Alterar Senha</h2>
+          <div class="onda-decorativa"></div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">NOVA SENHA</label>
+          <input type="password" class="form-control" id="editUserPassword" placeholder="Mínimo 6 caracteres">
+        </div>
+        <div id="editUserPasswordResult"></div>
+        <button class="btn btn-submit w-100" id="btnSavePassword" onclick="salvarSenha()">ALTERAR SENHA</button>
 
         <hr class="my-4" style="border-color:var(--border-color);">
 
@@ -145,7 +157,8 @@
           <div class="text-muted-custom text-center py-3">Nenhuma rota</div>
         </div>
       </div>
-      <div class="modal-footer">
+      <div class="modal-footer d-flex justify-content-between">
+        <button class="btn btn-danger" onclick="excluirUsuario()" style="background:var(--accent-red);border:none;border-radius:8px;padding:12px 24px;font-weight:700;"><i class="bi bi-trash me-2"></i>EXCLUIR USUÁRIO</button>
         <button class="btn btn-secondary" data-bs-dismiss="modal" style="background:#222;border:none;border-radius:8px;padding:12px 24px;">Fechar</button>
       </div>
     </div>
