@@ -31,16 +31,19 @@ public class PassengerViewService {
         model.addAttribute("userImageUrl", freshUser.getUserImageUrl());
 
         String paymentLabel;
+        String paymentStatusName;
         if (freshUser.getPaymentStatus() == null) {
             paymentLabel = "Pagamento em dia";
+            paymentStatusName = "EM_DAY";
         } else {
+            paymentStatusName = freshUser.getPaymentStatus().name();
             paymentLabel = switch (freshUser.getPaymentStatus()) {
                 case EM_DAY -> "Pagamento em dia";
                 case PENDING -> "Pagamento Pendente";
-                case LATE -> "Pagamento Atrasado";
             };
         }
         model.addAttribute("paymentStatus", paymentLabel);
+        model.addAttribute("paymentStatusName", paymentStatusName);
     }
 
     public void prepareMapModel(Long routeId, Model model) {

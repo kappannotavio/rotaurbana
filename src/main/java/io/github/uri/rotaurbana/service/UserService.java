@@ -9,11 +9,17 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
 @Service
 public class UserService {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    LogService logService;
 
     public UserResponseDTO getUserById(Long id) {
 
@@ -50,10 +56,17 @@ public class UserService {
         if (fullName != null) user.setFullName(fullName);
         if (adress != null) user.setAdress(adress);
         if (city != null) user.setCity(city);
-        if (birthDate != null) user.setBirthDate(birthDate);
+        if (birthDate != null) {
+            if (birthDate.isAfter(LocalDate.now()))
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Data de nascimento não pode ser futura");
+            user.setBirthDate(birthDate);
+        }
         if (userImageUrl != null) user.setUserImageUrl(userImageUrl);
 
         userRepository.save(user);
+
+        logService.log("ATUALIZOU", "USUARIO", user.getId(),
+                "Perfil atualizado por " + loggedUser.getFullName());
 
         return new UserResponseDTO(
                 user.getFullName(),

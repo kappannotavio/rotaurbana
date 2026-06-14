@@ -82,13 +82,13 @@ function initMap(route) {
 function paymentBadgeClass(status) {
     if (status === 'EM_DAY') return 'payment-em-dia';
     if (status === 'PENDING') return 'payment-pendente';
-    return 'payment-atrasado';
+    return '';
 }
 
 function paymentLabel(status) {
     if (status === 'EM_DAY') return 'Em Dia';
     if (status === 'PENDING') return 'Pendente';
-    return 'Atrasado';
+    return '';
 }
 
 async function carregarDetalhes() {
@@ -143,7 +143,7 @@ function renderizar(data) {
 
     document.getElementById('statTotal').textContent = stats.totalPassengers || 0;
     document.getElementById('statEmDay').textContent = stats.emDayCount || 0;
-    document.getElementById('statLate').textContent = (stats.pendingCount || 0) + (stats.lateCount || 0);
+    document.getElementById('statLate').textContent = stats.pendingCount || 0;
 
     var passengerContainer = document.getElementById('passengerList');
     passengerContainer.innerHTML = '';
@@ -155,14 +155,18 @@ function renderizar(data) {
             var div = document.createElement('div');
             div.className = 'info-card d-flex justify-content-between align-items-center m-0';
 
+            var isAdminOrDriver = p.role === 'ADMIN' || p.role === 'DRIVER';
+            var paymentHtml = isAdminOrDriver ? '' :
+                '<div class="d-flex align-items-center gap-2">' +
+                    '<span class="payment-badge ' + paymentBadgeClass(p.paymentStatus) + '">' + paymentLabel(p.paymentStatus) + '</span>' +
+                '</div>';
+
             div.innerHTML =
                 '<div>' +
                     '<div class="fw-bold" style="font-size: 0.9rem;">' + escapeHtml(p.fullName || 'Desconhecido') + '</div>' +
                     (p.presenceTypeLabel ? '<div class="text-muted-custom text-xs">' + escapeHtml(p.presenceTypeLabel) + '</div>' : '') +
                 '</div>' +
-                '<div class="d-flex align-items-center gap-2">' +
-                    '<span class="payment-badge ' + paymentBadgeClass(p.paymentStatus) + '">' + paymentLabel(p.paymentStatus) + '</span>' +
-                '</div>';
+                paymentHtml;
             passengerContainer.appendChild(div);
         });
     }
@@ -215,18 +219,24 @@ function abrirModalEditar() {
         container.innerHTML = '<div class="text-muted-custom text-center py-3">Nenhum passageiro inscrito</div>';
     } else {
         passengers.forEach(function(p) {
+            var isAdminOrDriver = p.role === 'ADMIN' || p.role === 'DRIVER';
             var card = document.createElement('div');
             card.className = 'user-card';
 
-            var currentStatus = p.paymentStatus === 'EM_DAY' ? 'EM_DAY' : 'PENDING';
-            var isEmDia = currentStatus === 'EM_DAY';
+            var currentStatus = p.paymentStatus || 'EM_DAY';
 
-            card.innerHTML =
-                '<div class="user-name">' + escapeHtml(p.fullName) + '</div>' +
-                '<div class="status-group" data-user-id="' + p.id + '" data-status="' + currentStatus + '">' +
-                    '<span class="status-btn em-dia' + (isEmDia ? ' active' : '') + '" data-value="EM_DAY" onclick="togglePaymentStatus(this)">Em Dia</span>' +
-                    '<span class="status-btn pendente' + (!isEmDia ? ' active' : '') + '" data-value="PENDING" onclick="togglePaymentStatus(this)">Pendente</span>' +
-                '</div>';
+            if (isAdminOrDriver) {
+                card.innerHTML =
+                    '<div class="user-name">' + escapeHtml(p.fullName) + '</div>' +
+                    '<div class="text-muted-custom text-xs">---</div>';
+            } else {
+                card.innerHTML =
+                    '<div class="user-name">' + escapeHtml(p.fullName) + '</div>' +
+                    '<div class="status-group" data-user-id="' + p.id + '" data-status="' + currentStatus + '">' +
+                        '<span class="status-btn em-dia' + (currentStatus === 'EM_DAY' ? ' active' : '') + '" data-value="EM_DAY" onclick="togglePaymentStatus(this)">Em Dia</span>' +
+                        '<span class="status-btn pendente' + (currentStatus !== 'EM_DAY' ? ' active' : '') + '" data-value="PENDING" onclick="togglePaymentStatus(this)">Pendente</span>' +
+                    '</div>';
+            }
             container.appendChild(card);
         });
     }

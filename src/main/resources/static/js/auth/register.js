@@ -1,3 +1,5 @@
+document.getElementById("birthDate").setAttribute("max", new Date().toISOString().split("T")[0]);
+
 document.getElementById("registerForm").addEventListener("submit", async function(e) {
     e.preventDefault();
 
@@ -40,8 +42,9 @@ document.getElementById("registerForm").addEventListener("submit", async functio
                 fullName: document.getElementById("fullName").value,
                 adress: document.getElementById("adress").value,
                 city: document.getElementById("city").value,
-                email: document.getElementById("email").value,
+                email: document.getElementById("email").value.toLowerCase().trim(),
                 password: password,
+                confirmPassword: confirm,
                 birthDate: document.getElementById("birthDate").value,
                 userImageUrl: userImageUrl
             })
@@ -51,7 +54,7 @@ document.getElementById("registerForm").addEventListener("submit", async functio
             window.location.href = "/auth/login";
         } else {
             const text = await res.text();
-            errorEl.textContent = text ? "Erro: " + text : "E-mail já cadastrado";
+            errorEl.textContent = text || "Erro ao cadastrar";
             errorEl.style.display = "";
         }
     } catch (err) {

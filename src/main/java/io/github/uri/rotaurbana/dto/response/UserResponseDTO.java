@@ -10,7 +10,7 @@ public record UserResponseDTO(
         String city,
         Role role,
         String email,
-        LocalDate birthday,
+        LocalDate birthDate,
         String userImageUrl
 ) {
 }

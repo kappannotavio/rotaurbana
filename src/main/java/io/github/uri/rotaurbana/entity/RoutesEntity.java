@@ -33,7 +33,7 @@ public class RoutesEntity {
     @Column(unique = true, length = 6)
     private String code;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "fk_id_bus")
     private BusEntity bus;
 

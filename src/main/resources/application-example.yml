@@ -3,8 +3,8 @@ spring:
     name: rotaurbana
   datasource:
     url: jdbc:postgresql://localhost:5432/rotaurbana
-    username: SEU_USER
-    password: SUA_SENHA
+    username: postgres
+    password: postgres
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

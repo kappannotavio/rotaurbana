@@ -67,6 +67,8 @@ function renderizarMotoristas(drivers) {
     drivers.forEach(function(d) {
         var card = document.createElement('div');
         card.className = 'driver-card shadow-sm';
+        card.style.cursor = 'pointer';
+        card.onclick = function() { abrirEditarMotorista(d); };
 
         var name = d.fullName || 'Desconhecido';
         var parts = name.trim().split(/\s+/);
@@ -78,6 +80,9 @@ function renderizarMotoristas(drivers) {
                 '<div class="driver-name">' + escapeHtml(name) + '</div>' +
                 '<div class="driver-details">' + escapeHtml(d.email || '') + '</div>' +
                 '<div class="driver-licence"><i class="bi bi-card-text me-1"></i>CNH: ' + escapeHtml(d.licence || '---') + '</div>' +
+            '</div>' +
+            '<div class="ms-auto">' +
+                '<button class="btn btn-sm" onclick="event.stopPropagation();excluirMotorista(' + d.idDriver + ')" style="color:var(--accent-red);background:rgba(247,90,104,0.15);border:none;border-radius:6px;padding:6px 10px;"><i class="bi bi-trash"></i></button>' +
             '</div>';
 
         container.appendChild(card);
@@ -134,6 +139,96 @@ document.getElementById("driverForm").addEventListener("submit", async function(
         btn.innerHTML = originalText;
     }
 });
+
+function abrirEditarMotorista(driver) {
+    document.getElementById("editDriverId").value = driver.idDriver;
+    document.getElementById("editDriverName").value = driver.fullName || '';
+    document.getElementById("editDriverEmail").value = driver.email || '';
+    document.getElementById("editDriverLicence").value = driver.licence || '';
+    document.getElementById("editDriverAdress").value = driver.adress || '';
+    document.getElementById("editDriverCity").value = driver.city || '';
+    document.getElementById("editDriverResult").innerHTML = '';
+    var modal = new bootstrap.Modal(document.getElementById('modalEditarMotorista'));
+    modal.show();
+}
+
+document.getElementById("editDriverForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+    var btn = document.getElementById("btnEditDriver");
+    var originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>SALVANDO...';
+
+    var driverId = document.getElementById("editDriverId").value;
+    var fullName = document.getElementById("editDriverName").value.trim();
+    var email = document.getElementById("editDriverEmail").value.trim();
+    var licence = document.getElementById("editDriverLicence").value.trim();
+    var adress = document.getElementById("editDriverAdress").value.trim();
+    var city = document.getElementById("editDriverCity").value.trim();
+    var resultDiv = document.getElementById("editDriverResult");
+
+    if (!fullName || !email || !licence || !adress || !city) {
+        resultDiv.innerHTML = '<div class="result-box error">Todos os campos são obrigatórios</div>';
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        return;
+    }
+
+    try {
+        var res = await fetch('/api/admin/' + userId + '/drivers/' + driverId, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ fullName: fullName, email: email, licence: licence, adress: adress, city: city })
+        });
+
+        if (res.ok) {
+            resultDiv.innerHTML = '<div class="result-box success">Motorista atualizado com sucesso!</div>';
+            setTimeout(function() { resultDiv.innerHTML = ''; }, 2000);
+            var modal = bootstrap.Modal.getInstance(document.getElementById('modalEditarMotorista'));
+            if (modal) modal.hide();
+            var driversRes = await fetch('/api/admin/' + userId + '/drivers', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (driversRes.ok) {
+                renderizarMotoristas(await driversRes.json());
+            }
+        } else {
+            var err = await res.text();
+            resultDiv.innerHTML = '<div class="result-box error">Erro: ' + escapeHtml(err) + '</div>';
+        }
+    } catch (err) {
+        resultDiv.innerHTML = '<div class="result-box error">Erro de rede</div>';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+});
+
+async function excluirMotorista(driverId) {
+    if (!confirm("Tem certeza que deseja excluir este motorista?")) return;
+    try {
+        var res = await fetch('/api/admin/' + userId + '/drivers/' + driverId, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (res.ok) {
+            var driversRes = await fetch('/api/admin/' + userId + '/drivers', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (driversRes.ok) {
+                renderizarMotoristas(await driversRes.json());
+            }
+        } else {
+            var err = await res.text();
+            alert('Erro: ' + err);
+        }
+    } catch (err) {
+        alert('Erro de conexão');
+    }
+}
 
 function escapeHtml(text) {
     if (!text) return '';

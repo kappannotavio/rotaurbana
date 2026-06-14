@@ -7,7 +7,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     btn.textContent = "Entrando...";
 
     const data = {
-        email: document.querySelector("input[name='email']").value,
+        email: document.querySelector("input[name='email']").value.toLowerCase().trim(),
         password: document.querySelector("input[name='password']").value
     };
 

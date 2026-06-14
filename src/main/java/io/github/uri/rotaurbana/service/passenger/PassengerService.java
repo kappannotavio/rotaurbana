@@ -2,9 +2,11 @@ package io.github.uri.rotaurbana.service.passenger;
 
 import io.github.uri.rotaurbana.entity.*;
 import io.github.uri.rotaurbana.repository.*;
+import io.github.uri.rotaurbana.service.LogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
@@ -23,6 +25,10 @@ public class PassengerService {
     @Autowired
     private PresenceRepository presenceRepository;
 
+    @Autowired
+    private LogService logService;
+
+    @Transactional
     public Map<String, Object> subscribeByBus(UserEntity user, String sign) {
         if (sign == null || sign.isBlank())
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Placa é obrigatória");
@@ -39,6 +45,9 @@ public class PassengerService {
             busRepository.save(bus);
         }
 
+        logService.log("INSCREVEU", "ONIBUS", bus.getIdBus(),
+                user.getFullName() + " inscreveu-se no ônibus placa " + bus.getSign());
+
         Map<String, Object> response = new HashMap<>();
         response.put("idBus", bus.getIdBus());
         response.put("sign", bus.getSign());
@@ -46,6 +55,7 @@ public class PassengerService {
         return response;
     }
 
+    @Transactional
     public Map<String, Object> subscribeByCode(UserEntity user, String code) {
         if (code == null || code.isBlank())
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Código é obrigatório");
@@ -62,6 +72,9 @@ public class PassengerService {
             busRepository.save(bus);
         }
 
+        logService.log("INSCREVEU", "ONIBUS", bus.getIdBus(),
+                user.getFullName() + " inscreveu-se no ônibus código " + code);
+
         Map<String, Object> response = new HashMap<>();
         response.put("idBus", bus.getIdBus());
         response.put("sign", bus.getSign());
@@ -69,6 +82,7 @@ public class PassengerService {
         return response;
     }
 
+    @Transactional
     public Map<String, Object> subscribeByRoute(UserEntity user, String code) {
         if (code == null || code.isBlank())
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Código é obrigatório");
@@ -94,6 +108,9 @@ public class PassengerService {
             bus.getPassengers().add(user);
             busRepository.save(bus);
         }
+
+        logService.log("INSCREVEU", "ROTA", route.getIdRoute(),
+                user.getFullName() + " inscreveu-se na rota " + route.getDeparturePoint() + " → " + route.getDestiny());
 
         Map<String, Object> response = new HashMap<>();
         response.put("idBus", bus.getIdBus());
@@ -158,6 +175,7 @@ public class PassengerService {
         return result;
     }
 
+    @Transactional
     public Map<String, Object> confirmPresence(UserEntity user, Long routeId, String presenceType) {
         if (routeId == null || presenceType == null || presenceType.isBlank())
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "routeId e presenceType são obrigatórios");
@@ -183,6 +201,18 @@ public class PassengerService {
 
         presenceRepository.save(presence);
 
+        String presenceLabel = switch (presenceType) {
+            case "vai_volta" -> "Vai e Volta";
+            case "so_vai" -> "Só Vai";
+            case "so_volta" -> "Só Volta";
+            case "nao_vai" -> "Não Vai";
+            default -> presenceType;
+        };
+
+        logService.log("CONFIRMOU", "PRESENCA", routeId,
+                user.getFullName() + " confirmou presença como " + presenceLabel
+                + " na rota " + route.getDeparturePoint() + " → " + route.getDestiny());
+
         Map<String, Object> response = new HashMap<>();
         response.put("routeId", routeId);
         response.put("presenceType", presenceType);
@@ -191,6 +221,7 @@ public class PassengerService {
         return response;
     }
 
+    @Transactional
     public void unsubscribeRoute(UserEntity user, Long routeId) {
         RoutesEntity route = routesRepository.findById(routeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Rota não encontrada"));
@@ -207,6 +238,10 @@ public class PassengerService {
         }
 
         routesRepository.save(route);
+
+        logService.log("DESINSCREVEU", "ROTA", routeId,
+                user.getFullName() + " desinscreveu-se da rota "
+                + route.getDeparturePoint() + " → " + route.getDestiny());
     }
 
     public void validateUser(UserEntity user, Long userId) {

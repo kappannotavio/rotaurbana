@@ -90,8 +90,16 @@ public class DriverService {
             Map<String, Object> m = new HashMap<>();
             m.put("idRoute", r.getIdRoute());
             m.put("destiny", r.getDestiny());
+            m.put("departurePoint", r.getDeparturePoint());
+            m.put("departureAddress", r.getDepartureAddress());
+            m.put("destinationAddress", r.getDestinationAddress());
             m.put("departureTime", r.getDepartureTime() != null ? r.getDepartureTime().toString() : null);
             m.put("destinationTime", r.getDestinationTime() != null ? r.getDestinationTime().toString() : null);
+            m.put("estimatedDuration", r.getEstimatedDuration());
+            m.put("departureLatitude", r.getDepartureLatitude());
+            m.put("departureLongitude", r.getDepartureLongitude());
+            m.put("destinationLatitude", r.getDestinationLatitude());
+            m.put("destinationLongitude", r.getDestinationLongitude());
             m.put("code", r.getCode());
             return m;
         }).collect(Collectors.toList());

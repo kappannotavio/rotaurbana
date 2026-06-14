@@ -1,35 +1,176 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compartilhar Localização</title>
+    <title>Compartilhar Localização - Rota Urbana</title>
+    <link rel="icon" type="image/x-icon" href="/images/system/logo-icon.ico">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" />
     <link rel="stylesheet" href="/css/location-sharing/style.css" />
 </head>
-<body>
-<div class="card">
-    <h2 class="mb-3 text-center">Compartilhar Localização</h2>
+<body class="tracking-body">
 
-    <label for="busSelect" class="form-label">Selecione o ônibus:</label>
-    <select id="busSelect" class="form-select mb-3">
-        <option value="">Carregando...</option>
-    </select>
-
-    <label for="routeSelect" class="form-label">Selecione a rota:</label>
-    <select id="routeSelect" class="form-select mb-2" disabled>
-        <option value="">Primeiro selecione um ônibus</option>
-    </select>
-
-    <div class="route-info" id="routeInfo"></div>
-
-    <div class="code-display" id="codeDisplay">------</div>
-    <p class="text-center text-muted small mb-3">Compartilhe este código com os passageiros</p>
-
-    <div class="status"><span class="status-dot" id="statusIndicator"></span><span id="statusText"> Aguardando início do compartilhamento...</span></div>
+<div class="tracking-topbar">
+    <div class="container-fluid px-4">
+        <div class="d-flex flex-wrap align-items-center py-3 gap-2">
+            <div class="d-flex align-items-center gap-3">
+                <a href="/driver" class="btn-back-track" title="Voltar ao Painel">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="status-dot active"></span>
+                        <h5 class="fw-bold text-white m-0">Rota em Andamento</h5>
+                    </div>
+                    <small id="currentDateTracking" class="text-muted-custom"></small>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-3 ms-auto">
+                <button class="btn btn-sm btn-outline-danger border-2" onclick="pararCompartilhamento()">
+                    <i class="bi bi-stop-circle me-1"></i>PARAR
+                </button>
+                <div class="dropdown">
+                    <div id="trackingAvatar" class="avatar-box" data-bs-toggle="dropdown" aria-expanded="false"
+                         th:style="'background: ' + (${userImageUrl != null && !#strings.isEmpty(userImageUrl) && userImageUrl != 'padrao'} ? 'url(' + ${userImageUrl} + ') center/cover no-repeat' : 'var(--primary-orange)') + ';'"
+                         th:data-name="${userName}">DR</div>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
+                        <li><a class="dropdown-item" href="#" onclick="editarPerfil()"><i class="bi bi-person-gear me-2"></i>Editar Perfil</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="#" onclick="sair()"><i class="bi bi-box-arrow-right me-2"></i>Sair</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<script src="/js/location-sharing/config.js"></script>
+<div class="info-bar">
+    <div class="container-fluid px-4">
+        <div class="row g-3 py-2">
+            <div class="col-md">
+                <div class="info-chip">
+                    <div class="chip-label">ÔNIBUS</div>
+                    <div id="chipBusName" class="chip-value text-teal fw-bold">--</div>
+                </div>
+            </div>
+            <div class="col-md">
+                <div class="info-chip">
+                    <div class="chip-label">ROTA</div>
+                    <div id="chipRouteName" class="chip-value text-orange fw-bold">--</div>
+                </div>
+            </div>
+            <div class="col-md">
+                <div class="info-chip">
+                    <div class="chip-label">CÓDIGO</div>
+                    <div id="chipCode" class="chip-value fw-bold code-text">------</div>
+                </div>
+            </div>
+            <div class="col-md">
+                <div class="info-chip">
+                    <div class="chip-label">STATUS GPS</div>
+                    <div id="chipStatus" class="chip-value">
+                        <span class="status-dot-small" id="gpsStatusDot"></span>
+                        <span id="gpsStatusText">Aguardando...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="trackingMap"></div>
+
+<div class="bottom-status-bar" id="bottomStatusBar">
+    <div class="container-fluid px-4">
+        <div class="d-flex justify-content-between align-items-center py-2">
+            <div class="d-flex align-items-center gap-2">
+                <div class="pulse-dot"></div>
+                <span class="text-white fw-bold" id="statusText">Compartilhando localização em tempo real...</span>
+            </div>
+            <small class="text-muted-custom" id="coordText">--</small>
+        </div>
+    </div>
+</div>
+
+<div id="fallbackView" style="display:none;" class="fallback-overlay">
+    <div class="card fallback-card">
+        <h2 class="mb-4 text-center fw-bold">Compartilhar Localização</h2>
+
+        <label for="busSelect" class="form-label text-muted-label">SELECIONE O ÔNIBUS</label>
+        <select id="busSelect" class="form-select mb-3">
+            <option value="">Carregando...</option>
+        </select>
+
+        <label for="routeSelect" class="form-label text-muted-label">SELECIONE A ROTA</label>
+        <select id="routeSelect" class="form-select mb-3" disabled>
+            <option value="">Primeiro selecione um ônibus</option>
+        </select>
+
+        <div class="text-center mb-4" id="codeSection" style="display:none;">
+            <div class="code-display" id="codeDisplay">------</div>
+            <p class="text-muted-custom small mb-0">Compartilhe este código com os passageiros</p>
+        </div>
+
+        <div class="d-flex gap-3">
+            <button class="btn btn-outline-secondary flex-fill" onclick="voltarAoPainel()">
+                <i class="bi bi-arrow-left me-1"></i> VOLTAR
+            </button>
+            <button id="btnStartManual" class="btn btn-iniciar flex-fill" disabled>
+                <i class="bi bi-play-fill me-1"></i> INICIAR
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasEditarPerfilTracking">
+    <div class="offcanvas-header border-bottom border-secondary">
+        <h5 class="offcanvas-title fw-bold">Editar Perfil</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div class="image-upload-wrapper mb-4">
+            <img id="editImagePreviewTrack" src="" alt="Preview"
+                 style="display:none; width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid var(--primary-orange);">
+            <label class="upload-btn" id="editUploadLabelTrack">
+                <i class="bi bi-camera fs-2 d-block mb-1"></i>
+                <span>Clique para escolher foto</span>
+                <input type="file" id="editImageInputTrack" accept="image/*" style="display:none;">
+            </label>
+            <input type="hidden" id="editUserImageUrlTrack">
+        </div>
+
+        <div class="mb-3">
+            <label>NOME COMPLETO</label>
+            <input type="text" class="form-control" id="editFullNameTrack">
+        </div>
+        <div class="mb-3">
+            <label>ENDEREÇO</label>
+            <input type="text" class="form-control" id="editAdressTrack">
+        </div>
+        <div class="mb-3">
+            <label>CIDADE</label>
+            <input type="text" class="form-control" id="editCityTrack">
+        </div>
+        <div class="mb-3">
+            <label>DATA DE NASCIMENTO</label>
+            <input type="date" class="form-control" id="editBirthDateTrack">
+        </div>
+    </div>
+    <div class="offcanvas-footer border-top border-secondary p-3">
+        <button id="btnSalvarPerfilTrack" class="btn btn-iniciar w-100">Salvar Alterações</button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script th:inline="javascript">
+    const userId = /*[[${userId}]]*/ null;
+</script>
 <script src="/js/location-sharing/location-sharing.js"></script>
+
 </body>
 </html>

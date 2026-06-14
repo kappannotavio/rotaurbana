@@ -1,47 +1,167 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Motorista - Rota Urbana</title>
+    <link rel="icon" type="image/x-icon" href="/images/system/logo-icon.ico">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" />
     <link rel="stylesheet" href="/css/driver/driver.css" />
 </head>
 <body>
 
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 class="mb-1">Painel do Motorista</h3>
-            <small class="text-muted-custom" id="driverInfo">Carregando...</small>
+<div class="container-fluid py-4 px-md-5">
+
+    <header class="d-flex flex-wrap align-items-center mb-5 gap-2 gap-md-3">
+        <div class="text-center text-md-start">
+            <h4 class="mb-1 fw-bold">Bem-vindo, <span th:text="${userName}">(Motorista)</span></h4>
+            <small id="currentDate" class="text-muted-custom">Carregando...</small>
         </div>
-        <a href="/auth/login" class="btn btn-outline-danger btn-sm">Sair</a>
+        <div class="d-flex align-items-center gap-3 ms-auto">
+            <div class="dropdown">
+                <div id="driverAvatar" class="avatar-box" data-bs-toggle="dropdown" aria-expanded="false"
+                     th:style="'background: ' + (${userImageUrl != null && !#strings.isEmpty(userImageUrl) && userImageUrl != 'padrao'} ? 'url(' + ${userImageUrl} + ') center/cover no-repeat' : 'var(--primary-orange)') + ';'"
+                     th:data-name="${userName}">DR</div>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
+                    <li><a class="dropdown-item" href="#" onclick="editarPerfil()"><i class="bi bi-person-gear me-2"></i>Editar Perfil</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="#" onclick="sair()"><i class="bi bi-box-arrow-right me-2"></i>Sair</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <div class="mb-4">
+        <div class="text-orange fw-bold mb-1 section-subtitle">MOTORISTA</div>
+        <h2 class="fw-bold text-white m-0">PAINEL DE CONTROLE</h2>
     </div>
 
     <div id="loadingView" class="loading">
         <div class="spinner"></div>
-        <p>Carregando seus ônibus...</p>
+        <p class="text-muted-custom">Carregando seus ônibus...</p>
     </div>
 
-    <div id="busesView" style="display:none;">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">Meus Ônibus</h5>
+    <div id="mainView" style="display:none;">
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-4">
+                        <div class="stat-card">
+                            <h6 class="text-uppercase m-0 text-muted-label">ÔNIBUS SELECIONADO</h6>
+                            <div id="statBusName" class="text-teal fw-bold fs-5 mb-1">--</div>
+                            <small id="statBusMeta" class="text-muted-custom info-card-text"></small>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="stat-card">
+                            <h6 class="text-uppercase m-0 text-muted-label">ROTA ATUAL</h6>
+                            <div id="statRouteName" class="text-orange fw-bold fs-5 mb-1">--</div>
+                            <small id="statRouteMeta" class="text-muted-custom info-card-text"></small>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="stat-card">
+                            <h6 class="text-uppercase m-0 text-muted-label">STATUS</h6>
+                            <div id="statStatus" class="text-white fw-bold fs-5 mb-1">Pronto</div>
+                            <small id="statStatusText" class="text-muted-custom info-card-text">Selecione ônibus e rota</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="selection-card">
+                            <div class="section-title text-uppercase mb-3">SELECIONAR ÔNIBUS</div>
+                            <div id="busesList" class="selection-scroll-area">
+                                <div class="text-muted-custom text-center py-3">Carregando...</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="selection-card">
+                            <div class="section-title text-uppercase mb-3 d-flex justify-content-between align-items-center">
+                                <span>SELECIONAR ROTA</span>
+                                <button class="btn btn-sm btn-outline-secondary py-0 px-2" id="btnBackToBuses" style="display:none;font-size:0.7rem;border-color:#444;color:#888;" onclick="backToBuses()">
+                                    ← voltar
+                                </button>
+                            </div>
+                            <div id="routesList" class="selection-scroll-area">
+                                <div class="text-muted-custom text-center py-3">Selecione um ônibus primeiro</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col-lg-4">
+                <div class="map-section">
+                    <div class="section-title text-uppercase mb-3">VISUALIZAR ROTA</div>
+                    <div id="driverMap" class="driver-map mb-3"></div>
+                    <button id="btnIniciarRota" class="btn btn-iniciar w-100 fs-5 text-uppercase shadow-lg" disabled>
+                        <i class="bi bi-play-fill me-2"></i>INICIAR ROTA
+                    </button>
+                    <p id="routeCode" class="text-center mt-2 mb-0 text-muted-custom" style="display:none;">
+                        Código: <span class="text-teal fw-bold code-display"></span>
+                    </p>
+                </div>
+            </div>
         </div>
-        <div id="busesList" class="row g-3"></div>
+
     </div>
 
-    <div id="routesView" style="display:none;" class="mt-4">
-        <div class="d-flex align-items-center mb-3">
-            <button class="btn btn-sm btn-outline-secondary me-2" onclick="backToBuses()">← Voltar</button>
-            <h5 class="mb-0">Rotas - <span id="selectedBusName"></span></h5>
+</div>
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasEditarPerfil">
+    <div class="offcanvas-header border-bottom" style="border-color:var(--border-color)!important;">
+        <h5 class="offcanvas-title fw-bold">Editar Perfil</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div class="image-upload-wrapper mb-4" style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <img id="editImagePreview" src="" alt="Preview"
+                 style="display:none; width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid var(--primary-orange);">
+            <label class="upload-btn">
+                <i class="bi bi-camera fs-2 d-block mb-1"></i>
+                <span>Clique para escolher foto</span>
+                <input type="file" id="editImageInput" accept="image/*" style="display:none;">
+            </label>
+            <input type="hidden" id="editUserImageUrl">
         </div>
-        <div id="routesList" class="row g-3"></div>
+        <div class="mb-3">
+            <label>NOME COMPLETO</label>
+            <input type="text" class="form-control" id="editFullName">
+        </div>
+        <div class="mb-3">
+            <label>ENDEREÇO</label>
+            <input type="text" class="form-control" id="editAdress">
+        </div>
+        <div class="mb-3">
+            <label>CIDADE</label>
+            <input type="text" class="form-control" id="editCity">
+        </div>
+        <div class="mb-3">
+            <label>DATA DE NASCIMENTO</label>
+            <input type="date" class="form-control" id="editBirthDate">
+        </div>
+    </div>
+    <div class="offcanvas-footer border-top p-3" style="border-color:var(--border-color)!important;">
+        <button id="btnSalvarPerfil" class="btn w-100" style="background-color:var(--primary-orange);border:none;color:white;font-weight:700;border-radius:8px;padding:12px;">Salvar Alterações</button>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script th:inline="javascript">
+    const userId = /*[[${userId}]]*/ null;
+</script>
 <script src="/js/driver/driver.js"></script>
+
 </body>
 </html>

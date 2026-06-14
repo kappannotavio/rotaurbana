@@ -10,11 +10,14 @@ import io.github.uri.rotaurbana.enums.Role;
 import io.github.uri.rotaurbana.repository.DriverRepository;
 import io.github.uri.rotaurbana.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 @Service
@@ -31,6 +34,12 @@ public class LoginService {
 
     @Autowired
     private DriverRepository driverRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private LogService logService;
 
     public LoginResponseDTO login(AuthResponseDTO authResponseDTO) {
         var usernamePassword = new UsernamePasswordAuthenticationToken(authResponseDTO.email(), authResponseDTO.password());
@@ -55,22 +64,61 @@ public class LoginService {
         );
     }
 
-    public boolean register(RegisterRequestDTO registerRequestDTO) {
-        if (this.userRepository.findByEmail(registerRequestDTO.email()) != null) return false;
+    public void register(RegisterRequestDTO dto) {
+        String fullName = dto.fullName();
+        String adress = dto.adress();
+        String city = dto.city();
+        String email = dto.email();
+        String password = dto.password();
+        String confirmPassword = dto.confirmPassword();
+        LocalDate birthDate = dto.birthDate();
 
-        String encryptedPassword = new BCryptPasswordEncoder().encode(registerRequestDTO.password());
-        UserEntity user = new UserEntity(
-                registerRequestDTO.fullName(),
-                registerRequestDTO.adress(),
-                registerRequestDTO.city(),
-                registerRequestDTO.email(),
-                encryptedPassword,
-                registerRequestDTO.birthDate(),
-                registerRequestDTO.userImageUrl());
+        if (fullName == null || fullName.isBlank())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nome completo é obrigatório");
+
+        if (adress == null || adress.isBlank())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Endereço é obrigatório");
+
+        if (city == null || city.isBlank())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cidade é obrigatória");
+
+        if (email == null || email.isBlank())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "E-mail é obrigatório");
+
+        email = email.toLowerCase().trim();
+
+        if (!email.matches("^[\\w-.]+@[\\w-]+\\.[\\w.-]+$"))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "E-mail inválido");
+
+        if (password == null || password.isBlank())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Senha é obrigatória");
+
+        if (password.length() < 6)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A senha deve ter no mínimo 6 caracteres");
+
+        if (confirmPassword == null || confirmPassword.isBlank())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Confirmação de senha é obrigatória");
+
+        if (!password.equals(confirmPassword))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Senhas não conferem");
+
+        if (birthDate == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Data de nascimento é obrigatória");
+
+        if (birthDate.isAfter(LocalDate.now()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Data de nascimento deve ser no passado");
+
+        if (this.userRepository.findByEmail(email) != null)
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail já cadastrado");
+
+        String encryptedPassword = passwordEncoder.encode(password);
+        UserEntity user = new UserEntity(fullName, adress, city, email, encryptedPassword, birthDate,
+                dto.userImageUrl());
 
         this.userRepository.save(user);
 
-        return true;
+        logService.log("CRIADO", "USUARIO", user.getId(),
+                "Novo usuário: " + user.getFullName() + " (" + email + ")");
     }
 
 }
